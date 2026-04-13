@@ -1,0 +1,384 @@
+{% extends "base.html" %}
+{% block title %}Riwayat Prediksi — HeartCheck{% endblock %}
+
+{% block extra_css %}
+<style>
+    .page-hdr { margin-bottom: 24px; }
+    .page-hdr h1 { font-size: 24px; font-weight: 700; margin-bottom: 6px; }
+    .page-hdr p  { font-size: 14px; color: var(--text-dim); }
+
+    /* ── Kartu statistik ringkasan ────────────────────────────────── */
+    .summary-row {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 14px;
+        margin-bottom: 28px;
+    }
+    @media (max-width: 540px) { .summary-row { grid-template-columns: 1fr; } }
+
+    .summary-card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: 18px 20px;
+        text-align: center;
+    }
+    .summary-card .sc-val   { font-size: 28px; font-weight: 700; color: var(--primary); line-height: 1; }
+    .summary-card .sc-label { font-size: 12px; color: var(--text-dim); margin-top: 4px; font-weight: 500; }
+
+    /* ── Daftar riwayat (card expandable) ───────────────────────── */
+    .riwayat-list { display: flex; flex-direction: column; gap: 10px; }
+
+    .riwayat-card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        overflow: hidden;
+        transition: box-shadow 0.2s, border-color 0.2s;
+    }
+    .riwayat-card:hover { box-shadow: 0 2px 12px rgba(0,0,0,0.08); border-color: var(--primary); }
+    .riwayat-card.open  { border-color: var(--primary); box-shadow: 0 2px 14px rgba(22,163,74,0.12); }
+
+    /* Header yang bisa diklik */
+    .riwayat-header {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        padding: 14px 18px;
+        cursor: pointer;
+        user-select: none;
+    }
+
+    .rh-index {
+        font-size: 12px;
+        font-weight: 700;
+        color: var(--muted);
+        width: 24px;
+        text-align: center;
+        flex-shrink: 0;
+    }
+
+    .rh-badge-wrap { flex-shrink: 0; }
+
+    .badge-risiko-tinggi {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        background: var(--danger-lt);
+        color: var(--danger);
+        border: 1px solid #fca5a5;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 600;
+        white-space: nowrap;
+    }
+    .badge-risiko-rendah {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        background: var(--primary-lt);
+        color: var(--primary-dk);
+        border: 1px solid #86efac;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 600;
+        white-space: nowrap;
+    }
+
+    .rh-meta {
+        flex: 1;
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 6px 16px;
+        font-size: 12px;
+        color: var(--text-dim);
+    }
+    .rh-meta .meta-item { white-space: nowrap; }
+    .rh-meta .meta-item b { color: var(--text-mid); font-weight: 600; }
+
+    .rh-conf {
+        flex-shrink: 0;
+        text-align: right;
+    }
+    .rh-conf .conf-val  { font-size: 16px; font-weight: 700; line-height: 1; }
+    .rh-conf .conf-lbl  { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; }
+    .risiko-tinggi-text { color: var(--danger); }
+    .risiko-rendah-text { color: var(--primary); }
+
+    .rh-chevron {
+        flex-shrink: 0;
+        font-size: 13px;
+        color: var(--muted);
+        transition: transform 0.2s;
+    }
+    .riwayat-card.open .rh-chevron { transform: rotate(180deg); }
+
+    /* Mini confidence bar di header */
+    .conf-mini-bar {
+        width: 60px;
+        height: 4px;
+        background: #e5e7eb;
+        border-radius: 2px;
+        overflow: hidden;
+        margin-top: 4px;
+        margin-left: auto;
+    }
+    .conf-mini-fill         { height: 100%; width: 0; border-radius: 2px; }
+    .conf-mini-fill.danger  { background: var(--danger); }
+    .conf-mini-fill.success { background: var(--primary); }
+
+    /* ── Detail panel (tersembunyi, toggle saat diklik) ──────────── */
+    .riwayat-detail {
+        display: none;
+        border-top: 1px solid var(--border);
+    }
+    .riwayat-card.open .riwayat-detail { display: block; }
+
+    .detail-body { padding: 18px 20px; }
+
+    /* Grid 3 kolom data input */
+    .detail-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 10px 16px;
+        margin-bottom: 18px;
+    }
+    @media (max-width: 560px) { .detail-grid { grid-template-columns: 1fr 1fr; } }
+
+    .detail-field .df-label { font-size: 10px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 2px; }
+    .detail-field .df-val   { font-size: 13px; font-weight: 600; color: var(--text); }
+
+    /* Bar probabilitas di detail */
+    .detail-prob { margin-bottom: 16px; }
+    .detail-prob-label { font-size: 11px; font-weight: 700; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 8px; }
+    .prob-row      { display: flex; align-items: center; gap: 10px; font-size: 12px; margin-bottom: 6px; }
+    .prob-name     { width: 110px; font-weight: 500; }
+    .prob-name-d   { color: var(--danger); }
+    .prob-name-n   { color: var(--primary); }
+    .prob-track    { flex: 1; height: 7px; background: #e5e7eb; border-radius: 4px; overflow: hidden; }
+    .prob-fill-d   { height: 100%; width: 0; background: var(--danger); border-radius: 4px; }
+    .prob-fill-n   { height: 100%; width: 0; background: var(--primary); border-radius: 4px; }
+    .prob-pct      { width: 40px; text-align: right; font-weight: 600; font-size: 12px; }
+    .prob-pct-d    { color: var(--danger); }
+    .prob-pct-n    { color: var(--primary); }
+
+    .detail-date {
+        font-size: 11px;
+        color: var(--muted);
+        border-top: 1px solid var(--border);
+        padding-top: 10px;
+        margin-top: 4px;
+    }
+
+    /* ── Tampilan kosong ─────────────────────────────────────────── */
+    .empty-state {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        text-align: center;
+        padding: 60px 24px;
+    }
+    .empty-state .es-icon { font-size: 52px; margin-bottom: 16px; }
+    .empty-state h3 { font-size: 18px; font-weight: 700; margin-bottom: 8px; }
+    .empty-state p  { font-size: 14px; color: var(--text-dim); line-height: 1.6; max-width: 360px; margin: 0 auto 20px; }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<div class="page-hdr">
+    <h1>📋 Riwayat Prediksi</h1>
+    <p>Semua hasil analisis risiko jantung Anda, diurutkan dari yang terbaru. Klik kartu untuk melihat detail.</p>
+</div>
+
+{% if riwayat %}
+
+<!-- ── Statistik Ringkasan ─────────────────────────────────────────── -->
+{% set jml_risiko_tinggi = riwayat | selectattr('hasil', 'equalto', 'Risiko Tinggi') | list | length %}
+{% set jml_risiko_rendah = riwayat | length - jml_risiko_tinggi %}
+{% set avg_confidence    = (riwayat | map(attribute='confidence') | list | sum / riwayat | length) | round(1) %}
+
+<div class="summary-row">
+    <div class="summary-card">
+        <div class="sc-val">{{ riwayat | length }}</div>
+        <div class="sc-label">Total Prediksi</div>
+    </div>
+    <div class="summary-card">
+        <div class="sc-val" style="color:var(--danger);">{{ jml_risiko_tinggi }}</div>
+        <div class="sc-label">Risiko Tinggi Terdeteksi</div>
+    </div>
+    <div class="summary-card">
+        <div class="sc-val">{{ avg_confidence }}%</div>
+        <div class="sc-label">Rata-rata Confidence</div>
+    </div>
+</div>
+
+<!-- ── Daftar Kartu Riwayat ────────────────────────────────────────── -->
+<div class="riwayat-list">
+    {% for r in riwayat %}
+    <div class="riwayat-card" id="card-{{ loop.index }}" data-index="{{ loop.index }}" onclick="toggleDetail(this)">
+
+        <!-- Header ringkas (selalu terlihat) -->
+        <div class="riwayat-header">
+            <div class="rh-index">{{ loop.index }}</div>
+
+            <div class="rh-badge-wrap">
+                {% if r.hasil == 'Risiko Tinggi' %}
+                <span class="badge-risiko-tinggi">💔 Risiko Tinggi</span>
+                {% else %}
+                <span class="badge-risiko-rendah">💚 Risiko Rendah</span>
+                {% endif %}
+            </div>
+
+            <div class="rh-meta">
+                <span class="meta-item">🕐 {{ r.created_at[:16].replace('T', ' ') if r.created_at else '—' }}</span>
+                <span class="meta-item">👤 <b>{{ r.age }} thn</b> · {{ 'Laki-laki' if r.sex == 'M' else 'Perempuan' }}</span>
+                <span class="meta-item">💊 Kol: <b>{{ r.cholesterol }}</b></span>
+                <span class="meta-item">💓 MaxHR: <b>{{ r.max_hr }}</b></span>
+            </div>
+
+            <div class="rh-conf">
+                <div class="conf-val {{ 'risiko-tinggi-text' if r.hasil == 'Risiko Tinggi' else 'risiko-rendah-text' }}">
+                    {{ r.confidence }}%
+                </div>
+                <div class="conf-lbl">Confidence</div>
+                <div class="conf-mini-bar">
+                    <div class="conf-mini-fill {{ 'danger' if r.hasil == 'Risiko Tinggi' else 'success' }}" data-w="{{ r.confidence }}"></div>
+                </div>
+            </div>
+
+            <div class="rh-chevron">▼</div>
+        </div>
+
+        <!-- Detail panel (tersembunyi sampai diklik) -->
+        <div class="riwayat-detail">
+            <div class="detail-body">
+
+                <!-- Probabilitas dua kelas -->
+                <div class="detail-prob">
+                    <div class="detail-prob-label">Probabilitas Kelas</div>
+                    <div class="prob-row">
+                        <span class="prob-name prob-name-d">❤️‍🔥 Risiko Tinggi</span>
+                        <div class="prob-track"><div class="prob-fill-d" data-w="{{ r.prob_disease }}"></div></div>
+                        <span class="prob-pct prob-pct-d">{{ r.prob_disease }}%</span>
+                    </div>
+                    <div class="prob-row">
+                        <span class="prob-name prob-name-n">💚 Risiko Rendah</span>
+                        <div class="prob-track"><div class="prob-fill-n" data-w="{{ 100 - r.prob_disease }}"></div></div>
+                        <span class="prob-pct prob-pct-n">{{ 100 - r.prob_disease }}%</span>
+                    </div>
+                </div>
+
+                <!-- Semua data input -->
+                <div class="detail-grid">
+                    <div class="detail-field">
+                        <div class="df-label">Usia</div>
+                        <div class="df-val">{{ r.age }} tahun</div>
+                    </div>
+                    <div class="detail-field">
+                        <div class="df-label">Jenis Kelamin</div>
+                        <div class="df-val">{{ 'Laki-laki' if r.sex == 'M' else 'Perempuan' }}</div>
+                    </div>
+                    <div class="detail-field">
+                        <div class="df-label">Nyeri Dada</div>
+                        <div class="df-val">
+                            {% if r.chest_pain == 'TA' %}TA — Angina Tipikal
+                            {% elif r.chest_pain == 'ATA' %}ATA — Angina Atipikal
+                            {% elif r.chest_pain == 'NAP' %}NAP — Non-Anginal
+                            {% else %}ASY — Tanpa Gejala{% endif %}
+                        </div>
+                    </div>
+                    <div class="detail-field">
+                        <div class="df-label">Tekanan Darah</div>
+                        <div class="df-val">{{ r.resting_bp }} mmHg</div>
+                    </div>
+                    <div class="detail-field">
+                        <div class="df-label">Kolesterol</div>
+                        <div class="df-val">{{ r.cholesterol }} mm/dl</div>
+                    </div>
+                    <div class="detail-field">
+                        <div class="df-label">Gula Darah Puasa</div>
+                        <div class="df-val">{{ '> 120 mg/dl' if r.fasting_bs == 1 else '≤ 120 mg/dl' }}</div>
+                    </div>
+                    <div class="detail-field">
+                        <div class="df-label">EKG Istirahat</div>
+                        <div class="df-val">
+                            {% if r.resting_ecg == 'Normal' %}Normal
+                            {% elif r.resting_ecg == 'ST' %}ST — Kelainan ST-T
+                            {% else %}LVH — Hipertrofi{% endif %}
+                        </div>
+                    </div>
+                    <div class="detail-field">
+                        <div class="df-label">MaxHR</div>
+                        <div class="df-val">{{ r.max_hr }} bpm</div>
+                    </div>
+                    <div class="detail-field">
+                        <div class="df-label">Angina Olahraga</div>
+                        <div class="df-val">{{ 'Ya' if r.exercise_angina == 'Y' else 'Tidak' }}</div>
+                    </div>
+                    <div class="detail-field">
+                        <div class="df-label">Oldpeak (ST)</div>
+                        <div class="df-val">{{ r.oldpeak }}</div>
+                    </div>
+                    <div class="detail-field">
+                        <div class="df-label">ST Slope</div>
+                        <div class="df-val">
+                            {% if r.st_slope == 'Up' %}Up — Naik
+                            {% elif r.st_slope == 'Flat' %}Flat — Datar
+                            {% else %}Down — Turun{% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="detail-date">
+                    📅 Diprediksi pada {{ r.created_at[:16].replace('T', ' ') if r.created_at else '—' }}
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+    {% endfor %}
+</div>
+
+<p style="font-size:12px; color:var(--muted); margin-top:14px; text-align:right;">
+    Menampilkan {{ riwayat | length }} data prediksi • Klik kartu untuk detail
+</p>
+
+{% else %}
+<!-- ── Tampilan kosong (belum ada riwayat) ────────────────────────── -->
+<div class="empty-state">
+    <div class="es-icon">🗂️</div>
+    <h3>Belum Ada Riwayat Prediksi</h3>
+    <p>
+        Anda belum pernah melakukan prediksi. Mulai analisis risiko jantung Anda
+        sekarang dan hasilnya akan otomatis tersimpan di sini.
+    </p>
+    <a href="{{ url_for('prediksi') }}" class="btn-primary">
+        🔍 Mulai Prediksi Pertama →
+    </a>
+</div>
+{% endif %}
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function toggleDetail(el) {
+    const card = el.closest ? el : el;
+    card.classList.toggle('open');
+    // Set lebar bar saat detail dibuka (data-w → style.width)
+    card.querySelectorAll('[data-w]').forEach(function(bar) {
+        bar.style.width = bar.getAttribute('data-w') + '%';
+    });
+}
+
+// Set lebar bar mini confidence (selalu terlihat di header)
+document.querySelectorAll('.conf-mini-fill[data-w]').forEach(function(el) {
+    el.style.width = el.getAttribute('data-w') + '%';
+});
+</script>
+{% endblock %}

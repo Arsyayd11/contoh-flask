@@ -1,0 +1,316 @@
+{% extends "base.html" %}
+{% block title %}Tentang HeartCheck{% endblock %}
+
+{% block extra_css %}
+<style>
+    .page-hdr { margin-bottom: 32px; border-bottom: 2px solid var(--primary-lt); padding-bottom: 20px; }
+    .page-hdr h1 { font-size: 28px; font-weight: 700; margin-bottom: 8px; }
+    .page-hdr p  { font-size: 15px; color: var(--text-dim); line-height: 1.65; }
+
+    /* Section */
+    .section { margin-bottom: 48px; }
+    .section-hdr { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; }
+    .section-hdr h2 { font-size: 20px; font-weight: 700; }
+    .section-hdr .sh-line { flex: 1; height: 2px; background: var(--primary-lt); }
+
+    /* Info box */
+    .info-box {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 24px 28px;
+        font-size: 14px;
+        color: var(--text-mid);
+        line-height: 1.75;
+    }
+
+    /* Grid fitur klinis */
+    .fitur-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+    }
+    @media (max-width: 540px) { .fitur-grid { grid-template-columns: 1fr; } }
+
+    .fitur-card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-left: 4px solid var(--primary);
+        border-radius: 8px;
+        padding: 14px 16px;
+    }
+    .fitur-card .fc-nama { font-size: 13px; font-weight: 700; color: var(--primary); margin-bottom: 4px; }
+    .fitur-card .fc-tipe { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); margin-bottom: 4px; }
+    .fitur-card .fc-desc { font-size: 12px; color: var(--text-dim); line-height: 1.5; }
+
+    /* Pipeline steps */
+    .pipeline {
+        display: flex;
+        gap: 0;
+        align-items: center;
+        overflow-x: auto;
+        padding-bottom: 8px;
+    }
+    .pipe-step {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: 16px 18px;
+        text-align: center;
+        min-width: 140px;
+        flex-shrink: 0;
+    }
+    .pipe-step .ps-icon  { font-size: 24px; margin-bottom: 8px; }
+    .pipe-step .ps-title { font-size: 13px; font-weight: 700; margin-bottom: 4px; }
+    .pipe-step .ps-desc  { font-size: 11px; color: var(--text-dim); line-height: 1.4; }
+    .pipe-arrow { font-size: 20px; color: var(--primary); padding: 0 8px; flex-shrink: 0; }
+
+    /* Metric cards */
+    .metric-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 14px;
+    }
+    .metric-card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: 20px;
+    }
+    .metric-card .mc-val   { font-size: 32px; font-weight: 700; color: var(--primary); line-height: 1; margin-bottom: 6px; }
+    .metric-card .mc-label { font-size: 12px; font-weight: 600; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 6px; }
+    .metric-card .mc-desc  { font-size: 12px; color: var(--muted); line-height: 1.5; }
+
+    /* FAQ */
+    .faq-item {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: 18px 20px;
+        margin-bottom: 10px;
+    }
+    .faq-item .faq-q { font-size: 14px; font-weight: 700; color: var(--text); margin-bottom: 8px; }
+    .faq-item .faq-a { font-size: 13px; color: var(--text-dim); line-height: 1.65; }
+
+    /* Disclaimer penting */
+    .disclaimer-box {
+        background: var(--warning-lt);
+        border: 1px solid #fcd34d;
+        border-radius: 12px;
+        padding: 20px 24px;
+        font-size: 14px;
+        color: #78350f;
+        line-height: 1.7;
+    }
+    .disclaimer-box strong { color: #92400e; }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<div class="page-hdr">
+    <h1>❤️ Tentang HeartCheck</h1>
+    <p>
+        HeartCheck adalah platform berbasis kecerdasan buatan yang dirancang untuk membantu
+        skrining awal risiko penyakit jantung menggunakan model Random Forest Classifier
+        yang dilatih pada data klinis nyata.
+    </p>
+</div>
+
+<!-- ── Tentang Aplikasi ────────────────────────────────────────────────── -->
+<div class="section">
+    <div class="section-hdr"><h2>Tentang Aplikasi</h2><div class="sh-line"></div></div>
+    <div class="info-box">
+        Penyakit kardiovaskular (CVD) merupakan penyebab kematian nomor 1 di dunia.
+        Setiap tahun, sekitar <strong>17,9 juta jiwa</strong> meninggal akibat kondisi ini.
+        Deteksi dini melalui analisis faktor risiko dapat membantu tenaga medis dan individu
+        untuk mengambil langkah pencegahan yang tepat.<br><br>
+        HeartCheck menggunakan model <strong>Random Forest Classifier</strong> yang dilatih
+        dengan pipeline preprocessing profesional untuk menganalisis 11 indikator klinis
+        dan menghasilkan prediksi risiko beserta <em>confidence score</em> yang mudah dipahami.
+    </div>
+</div>
+
+<!-- ── Dataset ─────────────────────────────────────────────────────────── -->
+<div class="section">
+    <div class="section-hdr"><h2>Dataset yang Digunakan</h2><div class="sh-line"></div></div>
+    <div class="info-box" style="margin-bottom:16px;">
+        Dataset <strong>Heart Failure Prediction</strong> (Fedesoriano, 2021) merupakan
+        penggabungan dari 5 dataset penyakit jantung yang tersedia di Kaggle, menghasilkan
+        918 observasi bersih setelah penghapusan duplikat dari 1.190 data awal.
+    </div>
+    <div class="fitur-grid">
+
+        <div class="fitur-card">
+            <div class="fc-tipe">Numerik</div>
+            <div class="fc-nama">Age — Usia</div>
+            <div class="fc-desc">Usia pasien dalam tahun</div>
+        </div>
+        <div class="fitur-card">
+            <div class="fc-tipe">Kategorikal</div>
+            <div class="fc-nama">Sex — Jenis Kelamin</div>
+            <div class="fc-desc">M = Laki-laki, F = Perempuan</div>
+        </div>
+        <div class="fitur-card">
+            <div class="fc-tipe">Kategorikal</div>
+            <div class="fc-nama">ChestPainType — Nyeri Dada</div>
+            <div class="fc-desc">TA, ATA, NAP, ASY (Asymptomatic)</div>
+        </div>
+        <div class="fitur-card">
+            <div class="fc-tipe">Numerik</div>
+            <div class="fc-nama">RestingBP — Tekanan Darah</div>
+            <div class="fc-desc">Tekanan darah saat istirahat (mm Hg)</div>
+        </div>
+        <div class="fitur-card">
+            <div class="fc-tipe">Numerik</div>
+            <div class="fc-nama">Cholesterol — Kolesterol</div>
+            <div class="fc-desc">Kadar kolesterol serum (mm/dl)</div>
+        </div>
+        <div class="fitur-card">
+            <div class="fc-tipe">Biner</div>
+            <div class="fc-nama">FastingBS — Gula Darah Puasa</div>
+            <div class="fc-desc">1 jika &gt; 120 mg/dl, 0 jika tidak</div>
+        </div>
+        <div class="fitur-card">
+            <div class="fc-tipe">Kategorikal</div>
+            <div class="fc-nama">RestingECG — Hasil EKG</div>
+            <div class="fc-desc">Normal, ST, LVH</div>
+        </div>
+        <div class="fitur-card">
+            <div class="fc-tipe">Numerik</div>
+            <div class="fc-nama">MaxHR — Detak Jantung Maks</div>
+            <div class="fc-desc">60–202 bpm saat olahraga</div>
+        </div>
+        <div class="fitur-card">
+            <div class="fc-tipe">Kategorikal</div>
+            <div class="fc-nama">ExerciseAngina — Angina Olahraga</div>
+            <div class="fc-desc">Y = Ya, N = Tidak</div>
+        </div>
+        <div class="fitur-card">
+            <div class="fc-tipe">Numerik</div>
+            <div class="fc-nama">Oldpeak — Depresi ST</div>
+            <div class="fc-desc">Nilai numerik depresi segmen ST</div>
+        </div>
+        <div class="fitur-card">
+            <div class="fc-tipe">Kategorikal</div>
+            <div class="fc-nama">ST_Slope — Kemiringan ST</div>
+            <div class="fc-desc">Up (menanjak), Flat (datar), Down (menurun)</div>
+        </div>
+
+    </div>
+</div>
+
+<!-- ── Pipeline Model ─────────────────────────────────────────────────── -->
+<div class="section">
+    <div class="section-hdr"><h2>Cara Kerja Model</h2><div class="sh-line"></div></div>
+    <div class="pipeline">
+        <div class="pipe-step">
+            <div class="ps-icon">📥</div>
+            <div class="ps-title">Input Data</div>
+            <div class="ps-desc">11 fitur klinis pasien</div>
+        </div>
+        <div class="pipe-arrow">→</div>
+        <div class="pipe-step">
+            <div class="ps-icon">⚖️</div>
+            <div class="ps-title">StandardScaler</div>
+            <div class="ps-desc">Normalisasi fitur numerik</div>
+        </div>
+        <div class="pipe-arrow">→</div>
+        <div class="pipe-step">
+            <div class="ps-icon">🔠</div>
+            <div class="ps-title">OneHotEncoder</div>
+            <div class="ps-desc">Encode fitur kategorikal</div>
+        </div>
+        <div class="pipe-arrow">→</div>
+        <div class="pipe-step">
+            <div class="ps-icon">🌳</div>
+            <div class="ps-title">Random Forest</div>
+            <div class="ps-desc">200 pohon keputusan</div>
+        </div>
+        <div class="pipe-arrow">→</div>
+        <div class="pipe-step">
+            <div class="ps-icon">📊</div>
+            <div class="ps-title">Probabilitas</div>
+            <div class="ps-desc">Risiko Tinggi / Rendah + confidence</div>
+        </div>
+    </div>
+</div>
+
+<!-- ── Performa Model ─────────────────────────────────────────────────── -->
+<div class="section">
+    <div class="section-hdr"><h2>Performa Model</h2><div class="sh-line"></div></div>
+    <div class="metric-grid">
+        <div class="metric-card">
+            <div class="mc-label">Akurasi</div>
+            <div class="mc-val">{{ accuracy }}%</div>
+            <div class="mc-desc">Persentase prediksi benar pada data uji (data yang tidak digunakan selama training)</div>
+        </div>
+        <div class="metric-card">
+            <div class="mc-label">AUC-ROC</div>
+            <div class="mc-val">{{ auc }}</div>
+            <div class="mc-desc">Area Under ROC Curve — kemampuan model membedakan kelas positif dan negatif. Nilai 1.0 = sempurna</div>
+        </div>
+        <div class="metric-card">
+            <div class="mc-label">Validasi Silang</div>
+            <div class="mc-val">5-Fold</div>
+            <div class="mc-desc">Performa diuji menggunakan 5-fold stratified cross-validation untuk hasil yang lebih robust</div>
+        </div>
+        <div class="metric-card">
+            <div class="mc-label">Data Training</div>
+            <div class="mc-val">918</div>
+            <div class="mc-desc">Total observasi dari 5 sumber dataset penyakit jantung yang digabungkan dan dibersihkan</div>
+        </div>
+    </div>
+</div>
+
+<!-- ── FAQ ───────────────────────────────────────────────────────────── -->
+<div class="section">
+    <div class="section-hdr"><h2>Pertanyaan Umum (FAQ)</h2><div class="sh-line"></div></div>
+
+    <div class="faq-item">
+        <div class="faq-q">❓ Apakah hasil prediksi ini akurat?</div>
+        <div class="faq-a">
+            Model memiliki akurasi {{ accuracy }}% dan AUC-ROC {{ auc }} pada data uji.
+            Namun, prediksi ini bersifat indikatif dan <strong>tidak menggantikan diagnosis dokter</strong>.
+            Gunakan hasilnya sebagai referensi awal, bukan keputusan medis final.
+        </div>
+    </div>
+
+    <div class="faq-item">
+        <div class="faq-q">❓ Apakah data saya aman?</div>
+        <div class="faq-a">
+            Data prediksi Anda hanya disimpan di database lokal aplikasi ini.
+            Kata sandi di-hash menggunakan algoritma yang aman dan tidak pernah disimpan dalam bentuk teks biasa.
+            Aplikasi ini tidak mengirim data ke server eksternal.
+        </div>
+    </div>
+
+    <div class="faq-item">
+        <div class="faq-q">❓ Apa itu Confidence Score?</div>
+        <div class="faq-a">
+            Confidence score menunjukkan seberapa yakin model terhadap prediksinya.
+            Nilai 90% berarti model sangat yakin. Nilai di bawah 60% berarti terdapat
+            ketidakpastian yang cukup besar — interpretasikan hasil dengan hati-hati.
+        </div>
+    </div>
+
+    <div class="faq-item">
+        <div class="faq-q">❓ Apakah perlu membuat akun?</div>
+        <div class="faq-a">
+            Tidak. Anda bisa menggunakan fitur prediksi tanpa mendaftar.
+            Namun, dengan mendaftar, hasil prediksi Anda akan tersimpan otomatis
+            sehingga Anda bisa memantau perubahan kondisi dari waktu ke waktu.
+        </div>
+    </div>
+</div>
+
+<!-- ── Disclaimer ─────────────────────────────────────────────────────── -->
+<div class="disclaimer-box">
+    ⚠️ <strong>Penting untuk Diketahui:</strong>
+    HeartCheck adalah alat bantu skrining berbasis data, bukan pengganti pemeriksaan
+    medis profesional. Hasil prediksi didasarkan pada pola statistik dari data historis
+    dan tidak mempertimbangkan kondisi medis individual secara menyeluruh.
+    <strong>Selalu konsultasikan kondisi kesehatan Anda dengan dokter atau tenaga medis yang berwenang.</strong>
+</div>
+
+{% endblock %}

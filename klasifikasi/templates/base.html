@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}HeartCheck{% endblock %}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* ── Design System: Tema Kesehatan Hijau-Putih ─────────────────── */
+        :root {
+            --bg          : #f0fdf4;      /* latar belakang utama: hijau sangat terang */
+            --surface     : #ffffff;      /* kartu / panel */
+            --border      : #d1d5db;      /* border input/kartu */
+            --border-green: #bbf7d0;      /* border hijau muda */
+            --primary     : #16a34a;      /* hijau utama (green-600) */
+            --primary-lt  : #dcfce7;      /* hijau sangat muda (green-100) */
+            --primary-dk  : #15803d;      /* hijau gelap hover (green-700) */
+            --danger      : #dc2626;      /* merah untuk risiko tinggi */
+            --danger-lt   : #fee2e2;      /* merah muda background */
+            --warning     : #d97706;      /* amber untuk peringatan */
+            --warning-lt  : #fef3c7;      /* amber muda */
+            --info        : #2563eb;      /* biru untuk informasi */
+            --info-lt     : #eff6ff;      /* biru muda */
+            --text        : #111827;      /* teks utama gelap */
+            --text-mid    : #374151;      /* teks menengah */
+            --text-dim    : #6b7280;      /* teks samar */
+            --muted       : #9ca3af;      /* teks paling samar */
+            --sans        : 'Inter', system-ui, sans-serif;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: var(--sans);
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* ── Navbar ──────────────────────────────────────────────────────── */
+        .navbar {
+            background: var(--surface);
+            border-bottom: 1px solid var(--border-green);
+            padding: 0 24px;
+            height: 64px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+        }
+
+        /* Logo / Brand */
+        .nav-brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--primary);
+        }
+        .nav-brand .brand-icon {
+            width: 34px;
+            height: 34px;
+            background: var(--primary);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+        }
+
+        /* Navigasi link tengah */
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            list-style: none;
+        }
+        .nav-links a {
+            padding: 7px 14px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-mid);
+            text-decoration: none;
+            transition: background 0.15s, color 0.15s;
+        }
+        .nav-links a:hover  { background: var(--primary-lt); color: var(--primary); }
+        .nav-links a.active { background: var(--primary-lt); color: var(--primary); font-weight: 600; }
+
+        /* Sisi kanan: auth */
+        .nav-auth {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-nav-ghost {
+            padding: 7px 16px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--primary);
+            background: transparent;
+            border: 1px solid var(--primary);
+            text-decoration: none;
+            transition: background 0.15s;
+        }
+        .btn-nav-ghost:hover { background: var(--primary-lt); }
+
+        .btn-nav-solid {
+            padding: 7px 16px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            color: white;
+            background: var(--primary);
+            border: 1px solid var(--primary);
+            text-decoration: none;
+            transition: background 0.15s;
+        }
+        .btn-nav-solid:hover { background: var(--primary-dk); }
+
+        /* Dropdown user */
+        .nav-user {
+            position: relative;
+        }
+        .nav-user-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 7px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-mid);
+            border: 1px solid var(--border);
+            background: var(--surface);
+            transition: border-color 0.15s;
+            user-select: none;
+        }
+        .nav-user-btn:hover { border-color: var(--primary); color: var(--primary); }
+        .nav-user-btn.open  { border-color: var(--primary); color: var(--primary); background: var(--primary-lt); }
+        .nav-user-avatar {
+            width: 28px;
+            height: 28px;
+            background: var(--primary);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 12px;
+            font-weight: 700;
+        }
+        .nav-dropdown {
+            display: none;
+            position: absolute;
+            right: 0;
+            top: 100%;
+            padding-top: 6px;
+            z-index: 200;
+        }
+        .nav-dropdown-inner {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            min-width: 200px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+            padding: 6px;
+        }
+        .nav-dropdown.open { display: block; }
+        .nav-dropdown a {
+            display: block;
+            padding: 9px 12px;
+            border-radius: 6px;
+            font-size: 13px;
+            color: var(--text-mid);
+            text-decoration: none;
+            transition: background 0.12s;
+        }
+        .nav-dropdown a:hover { background: var(--bg); color: var(--primary); }
+        .nav-dropdown .dd-divider { height: 1px; background: var(--border); margin: 5px 0; }
+        .nav-dropdown .dd-danger  { color: var(--danger) !important; }
+
+        /* ── Flash Messages ──────────────────────────────────────────────── */
+        .flash-container {
+            padding: 0 24px;
+            padding-top: 12px;
+            max-width: 900px;
+            margin: 0 auto;
+            width: 100%;
+        }
+        .flash {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            padding: 12px 16px;
+            border-radius: 8px;
+            font-size: 14px;
+            margin-bottom: 8px;
+            border: 1px solid transparent;
+        }
+        .flash.success { background: var(--primary-lt); border-color: #86efac; color: var(--primary-dk); }
+        .flash.danger  { background: var(--danger-lt);  border-color: #fca5a5; color: #b91c1c; }
+        .flash.warning { background: var(--warning-lt); border-color: #fcd34d; color: #92400e; }
+        .flash.info    { background: var(--info-lt);    border-color: #93c5fd; color: #1e40af; }
+
+        /* ── Konten Utama ─────────────────────────────────────────────────── */
+        .main-content {
+            flex: 1;
+            padding: 36px 24px 60px;
+            max-width: 900px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        /* ── Footer ──────────────────────────────────────────────────────── */
+        .footer {
+            background: var(--surface);
+            border-top: 1px solid var(--border-green);
+            padding: 24px;
+            text-align: center;
+            font-size: 13px;
+            color: var(--text-dim);
+        }
+        .footer a { color: var(--primary); text-decoration: none; }
+        .footer a:hover { text-decoration: underline; }
+
+        /* ── Komponen Umum ───────────────────────────────────────────────── */
+
+        /* Tombol utama hijau */
+        .btn-primary {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 11px 24px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            font-family: var(--sans);
+            cursor: pointer;
+            text-decoration: none;
+            transition: background 0.15s;
+        }
+        .btn-primary:hover { background: var(--primary-dk); }
+        .btn-primary.full  { width: 100%; justify-content: center; }
+
+        /* Tombol outline */
+        .btn-outline {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 11px 24px;
+            background: transparent;
+            color: var(--primary);
+            border: 1px solid var(--primary);
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            font-family: var(--sans);
+            cursor: pointer;
+            text-decoration: none;
+            transition: background 0.15s;
+        }
+        .btn-outline:hover { background: var(--primary-lt); }
+
+        /* Kartu / panel */
+        .card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 28px;
+        }
+
+        /* Badge chip kecil */
+        .badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        .badge-green  { background: var(--primary-lt); color: var(--primary-dk); }
+        .badge-red    { background: var(--danger-lt);  color: var(--danger); }
+        .badge-gray   { background: #f3f4f6; color: var(--text-dim); }
+
+        /* Input field standar */
+        .form-group { margin-bottom: 16px; }
+        .form-label {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-mid);
+            margin-bottom: 5px;
+        }
+        .form-hint {
+            font-size: 11px;
+            color: var(--text-dim);
+            margin-bottom: 5px;
+            font-weight: 400;
+        }
+        .form-control {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: var(--sans);
+            color: var(--text);
+            background: var(--surface);
+            transition: border-color 0.15s, box-shadow 0.15s;
+            -webkit-appearance: none;
+        }
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(22,163,74,0.1);
+        }
+        select.form-control {
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+            padding-right: 36px;
+        }
+
+        /* Divider */
+        .divider { border: none; border-top: 1px solid var(--border); margin: 20px 0; }
+
+        /* Section title kecil */
+        .section-label {
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: var(--text-dim);
+            margin-bottom: 14px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid var(--primary-lt);
+        }
+
+        /* Grid 2 kolom */
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+        .full   { grid-column: 1 / -1; }
+        @media (max-width: 540px) { .grid-2 { grid-template-columns: 1fr; } }
+    </style>
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+
+<!-- ── Navbar ──────────────────────────────────────────────────────────────── -->
+<nav class="navbar">
+    <!-- Brand / Logo -->
+    <a href="{{ url_for('beranda') }}" class="nav-brand">
+        <div class="brand-icon">❤️</div>
+        HeartCheck
+    </a>
+
+    <!-- Navigasi Tengah -->
+    <ul class="nav-links">
+        <li><a href="{{ url_for('beranda') }}"  {% if request.endpoint == 'beranda'  %}class="active"{% endif %}>Beranda</a></li>
+        <li><a href="{{ url_for('prediksi') }}" {% if request.endpoint == 'prediksi' %}class="active"{% endif %}>Prediksi</a></li>
+        {% if user %}
+        <li><a href="{{ url_for('riwayat') }}"  {% if request.endpoint == 'riwayat'  %}class="active"{% endif %}>Riwayat</a></li>
+        {% endif %}
+        <li><a href="{{ url_for('tentang') }}"  {% if request.endpoint == 'tentang'  %}class="active"{% endif %}>Tentang</a></li>
+    </ul>
+
+    <!-- Auth Sisi Kanan -->
+    <div class="nav-auth">
+        {% if user %}
+        <!-- Pengguna sudah login: tampilkan nama + dropdown -->
+        <div class="nav-user">
+            <div class="nav-user-btn" id="navUserBtn" onclick="toggleUserDropdown(event)">
+                <div class="nav-user-avatar">{{ user.nama[0].upper() }}</div>
+                {{ user.nama.split()[0] }}
+                <span style="font-size:10px; color:var(--muted)" id="navCaret">▾</span>
+            </div>
+            <div class="nav-dropdown" id="navDropdown">
+                <div class="nav-dropdown-inner">
+                    <div style="padding:8px 12px; font-size:12px; color:var(--text-dim);">{{ user.email }}</div>
+                    <div class="dd-divider"></div>
+                    <a href="{{ url_for('riwayat') }}">📋 Riwayat Prediksi</a>
+                    <div class="dd-divider"></div>
+                    <a href="{{ url_for('logout') }}" class="dd-danger">🚪 Keluar</a>
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <!-- Tamu: tampilkan tombol Masuk dan Daftar -->
+        <a href="{{ url_for('login') }}"    class="btn-nav-ghost">Masuk</a>
+        <a href="{{ url_for('register') }}" class="btn-nav-solid">Daftar</a>
+        {% endif %}
+    </div>
+</nav>
+
+<!-- ── Flash Messages ──────────────────────────────────────────────────────── -->
+{% with messages = get_flashed_messages(with_categories=true) %}
+{% if messages %}
+<div class="flash-container">
+    {% for category, message in messages %}
+    <div class="flash {{ category }}">
+        {% if category == 'success' %}✅{% elif category == 'danger' %}❌{% elif category == 'warning' %}⚠️{% else %}ℹ️{% endif %}
+        {{ message }}
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+{% endwith %}
+
+<!-- ── Konten Utama (diisi oleh masing-masing halaman) ───────────────────── -->
+<main class="{% block main_class %}main-content{% endblock %}">
+    {% block content %}{% endblock %}
+</main>
+
+<!-- ── Footer ─────────────────────────────────────────────────────────────── -->
+<footer class="footer">
+    <p>
+        &copy; 2024 <strong>HeartCheck</strong> —
+        Alat bantu skrining risiko penyakit jantung berbasis Machine Learning.
+        &nbsp;|&nbsp;
+        <a href="{{ url_for('tentang') }}">Tentang</a>
+        &nbsp;|&nbsp;
+        <a href="{{ url_for('prediksi') }}">Prediksi</a>
+    </p>
+    <p style="margin-top:6px; font-size:12px;">
+        ⚠️ Hasil prediksi bersifat indikatif dan <strong>tidak menggantikan diagnosis dokter</strong>.
+    </p>
+</footer>
+
+<script>
+// Toggle dropdown user — click-based agar tidak hilang saat digeser
+function toggleUserDropdown(e) {
+    e.stopPropagation();
+    const btn      = document.getElementById('navUserBtn');
+    const dropdown = document.getElementById('navDropdown');
+    const caret    = document.getElementById('navCaret');
+    if (!dropdown) return;
+    const isOpen = dropdown.classList.toggle('open');
+    btn.classList.toggle('open', isOpen);
+    caret.textContent = isOpen ? '▴' : '▾';
+}
+
+// Tutup dropdown jika klik di luar
+document.addEventListener('click', function () {
+    const btn      = document.getElementById('navUserBtn');
+    const dropdown = document.getElementById('navDropdown');
+    const caret    = document.getElementById('navCaret');
+    if (dropdown && dropdown.classList.contains('open')) {
+        dropdown.classList.remove('open');
+        btn && btn.classList.remove('open');
+        if (caret) caret.textContent = '▾';
+    }
+});
+</script>
+
+{% block extra_js %}{% endblock %}
+</body>
+</html>

@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Heart Disease — Prediksi</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg       : #0d0f14;
+            --surface  : #161a23;
+            --border   : #252a36;
+            --accent   : #6366f1;
+            --accent-lt: #818cf8;
+            --success  : #34d399;
+            --danger   : #f87171;
+            --warning  : #fbbf24;
+            --muted    : #6b7280;
+            --text     : #e2e8f0;
+            --text-dim : #94a3b8;
+            --mono     : 'DM Mono', monospace;
+            --sans     : 'DM Sans', sans-serif;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: var(--sans);
+            min-height: 100vh;
+            display: flex;
+            align-items: flex-start;
+            justify-content: center;
+            padding: 40px 20px;
+        }
+
+        .wrap { width: 100%; max-width: 560px; }
+
+        /* ── Navigasi balik ─────────────────────────────────────────── */
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12px;
+            color: var(--text-dim);
+            text-decoration: none;
+            margin-bottom: 20px;
+            transition: color 0.15s;
+        }
+        .back-link:hover { color: var(--accent-lt); }
+
+        /* ── Header ─────────────────────────────────────────────────── */
+        .hdr { margin-bottom: 24px; }
+        .hdr .badge {
+            display: inline-block;
+            font-family: var(--mono);
+            font-size: 11px;
+            color: var(--accent-lt);
+            border: 1px solid var(--accent);
+            padding: 3px 10px;
+            border-radius: 20px;
+            margin-bottom: 10px;
+            letter-spacing: 0.06em;
+        }
+        .hdr h1 { font-size: 22px; font-weight: 600; }
+        .hdr p  { font-size: 13px; color: var(--text-dim); margin-top: 5px; }
+
+        /* Badge performa model kecil */
+        .model-meta {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+            flex-wrap: wrap;
+        }
+        .meta-pill {
+            font-family: var(--mono);
+            font-size: 11px;
+            background: rgba(99,102,241,0.1);
+            border: 1px solid rgba(99,102,241,0.3);
+            color: var(--accent-lt);
+            padding: 3px 10px;
+            border-radius: 20px;
+        }
+
+        /* ── Card form ──────────────────────────────────────────────── */
+        .card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 24px;
+        }
+
+        .section-label {
+            font-family: var(--mono);
+            font-size: 11px;
+            color: var(--muted);
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            margin-bottom: 14px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .full   { grid-column: 1 / -1; }
+
+        .field { display: flex; flex-direction: column; gap: 4px; }
+
+        label {
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--text-dim);
+        }
+        .hint {
+            font-size: 10px;
+            color: var(--muted);
+            margin-bottom: 2px;
+        }
+
+        select, input[type="number"] {
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 9px 12px;
+            font-size: 13px;
+            font-family: var(--sans);
+            color: var(--text);
+            width: 100%;
+            transition: border-color 0.15s;
+            -webkit-appearance: none;
+        }
+
+        select {
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 10px center;
+            padding-right: 30px;
+        }
+
+        select:focus, input:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        .divider { border: none; border-top: 1px solid var(--border); margin: 18px 0; }
+
+        .btn {
+            width: 100%;
+            padding: 12px;
+            background: var(--accent);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            font-family: var(--sans);
+            cursor: pointer;
+            letter-spacing: 0.02em;
+            transition: opacity 0.15s;
+        }
+        .btn:hover { opacity: 0.85; }
+
+        /* ── Hasil prediksi ─────────────────────────────────────────── */
+        .result {
+            margin-top: 20px;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .result-header {
+            padding: 18px 22px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .result-header.disease { background: rgba(248,113,113,0.08); border-bottom: 1px solid rgba(248,113,113,0.2); }
+        .result-header.normal  { background: rgba(52,211,153,0.08);  border-bottom: 1px solid rgba(52,211,153,0.2); }
+
+        .verdict { font-size: 20px; font-weight: 600; }
+        .disease .verdict { color: var(--danger); }
+        .normal  .verdict { color: var(--success); }
+
+        .conf-wrap { text-align: right; }
+        .conf-label-sm { font-size: 10px; color: var(--muted); margin-bottom: 3px; }
+        .conf-pct { font-family: var(--mono); font-size: 24px; font-weight: 500; }
+        .disease .conf-pct { color: var(--danger); }
+        .normal  .conf-pct { color: var(--success); }
+
+        /* Confidence bar */
+        .conf-bar-wrap { padding: 12px 22px; border-bottom: 1px solid var(--border); }
+        .bar-track {
+            height: 6px;
+            background: var(--border);
+            border-radius: 3px;
+            overflow: hidden;
+        }
+        .bar-fill {
+            height: 100%;
+            border-radius: 3px;
+            transition: width 0.6s ease;
+        }
+        .disease .bar-fill { background: var(--danger); }
+        .normal  .bar-fill { background: var(--success); }
+
+        /* Probabilitas dua kelas */
+        .prob-row {
+            padding: 10px 22px;
+            display: flex;
+            gap: 12px;
+            border-bottom: 1px solid var(--border);
+        }
+        .prob-item {
+            flex: 1;
+            background: var(--bg);
+            border-radius: 8px;
+            padding: 10px 12px;
+            text-align: center;
+        }
+        .prob-item .pl { font-size: 10px; color: var(--muted); margin-bottom: 4px; }
+        .prob-item .pv { font-family: var(--mono); font-size: 16px; font-weight: 500; }
+        .pv-disease { color: var(--danger); }
+        .pv-normal  { color: var(--success); }
+
+        /* Feature importance */
+        .fi-wrap { padding: 14px 22px; }
+        .fi-title { font-size: 11px; font-family: var(--mono); color: var(--muted); letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 10px; }
+        .fi-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 7px;
+            font-size: 12px;
+        }
+        .fi-name  { width: 120px; color: var(--text-dim); font-family: var(--mono); font-size: 10px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .fi-track { flex: 1; height: 4px; background: var(--border); border-radius: 2px; overflow: hidden; }
+        .fi-bar   { height: 100%; background: var(--accent); border-radius: 2px; }
+        .fi-pct   { width: 42px; text-align: right; font-family: var(--mono); font-size: 10px; color: var(--text-dim); }
+
+        /* Chips ringkasan input */
+        .chips-wrap { padding: 0 22px 14px; display: flex; flex-wrap: wrap; gap: 6px; border-bottom: 1px solid var(--border); }
+        .chip {
+            font-size: 11px;
+            font-family: var(--mono);
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 5px;
+            padding: 3px 8px;
+            color: var(--text-dim);
+        }
+
+        .error-box {
+            margin-top: 14px;
+            background: rgba(248,113,113,0.08);
+            border: 1px solid rgba(248,113,113,0.25);
+            border-radius: 8px;
+            padding: 12px 16px;
+            font-size: 13px;
+            color: var(--danger);
+        }
+    </style>
+</head>
+<body>
+<div class="wrap">
+
+    <!-- Navigasi kembali ke landing page -->
+    <a href="/" class="back-link">← Kembali ke Beranda</a>
+
+    <div class="hdr">
+        <div class="badge">Random Forest · Heart Disease Prediction</div>
+        <h1>Form Prediksi Penyakit Jantung</h1>
+        <p>Isi 11 fitur klinis di bawah untuk mendapatkan prediksi dan probabilitas penyakit jantung.</p>
+        <div class="model-meta">
+            <span class="meta-pill">Akurasi: {{ accuracy }}%</span>
+            <span class="meta-pill">AUC-ROC: {{ auc }}</span>
+            <span class="meta-pill">918 observasi · 11 fitur</span>
+        </div>
+    </div>
+
+    <div class="card">
+        <form method="POST" action="/prediksi">
+
+            <!-- ── Fitur Numerik ──────────────────────────────────── -->
+            <div class="section-label">Fitur Numerik</div>
+            <div class="grid-2">
+
+                <div class="field">
+                    <label>Age — Usia (tahun)</label>
+                    <input type="number" name="age" min="1" max="120" step="1" placeholder="55" required>
+                </div>
+
+                <div class="field">
+                    <label>RestingBP — Tekanan Darah (mm Hg)</label>
+                    <p class="hint">Tekanan darah saat istirahat</p>
+                    <input type="number" name="resting_bp" min="0" max="250" step="1" placeholder="130" required>
+                </div>
+
+                <div class="field">
+                    <label>Cholesterol — Kolesterol (mm/dl)</label>
+                    <p class="hint">Kadar kolesterol serum</p>
+                    <input type="number" name="cholesterol" min="0" max="600" step="1" placeholder="200" required>
+                </div>
+
+                <div class="field">
+                    <label>MaxHR — Detak Jantung Maks</label>
+                    <p class="hint">60 – 202 bpm</p>
+                    <input type="number" name="max_hr" min="60" max="202" step="1" placeholder="150" required>
+                </div>
+
+                <div class="field">
+                    <label>Oldpeak — Depresi ST</label>
+                    <p class="hint">Nilai numerik, bisa negatif</p>
+                    <input type="number" name="oldpeak" min="-5" max="10" step="0.1" placeholder="1.0" required>
+                </div>
+
+            </div>
+
+            <hr class="divider">
+
+            <!-- ── Fitur Kategorikal ──────────────────────────────── -->
+            <div class="section-label">Fitur Kategorikal</div>
+            <div class="grid-2">
+
+                <div class="field">
+                    <label>Sex — Jenis Kelamin</label>
+                    <select name="sex" required>
+                        <option value="" disabled selected>Pilih</option>
+                        <option value="M">M — Laki-laki</option>
+                        <option value="F">F — Perempuan</option>
+                    </select>
+                </div>
+
+                <div class="field">
+                    <label>FastingBS — Gula Darah Puasa</label>
+                    <p class="hint">&gt; 120 mg/dl?</p>
+                    <select name="fasting_bs" required>
+                        <option value="" disabled selected>Pilih</option>
+                        <option value="1">1 — Ya (&gt; 120 mg/dl)</option>
+                        <option value="0">0 — Tidak</option>
+                    </select>
+                </div>
+
+                <div class="field">
+                    <label>ChestPainType — Nyeri Dada</label>
+                    <select name="chest_pain" required>
+                        <option value="" disabled selected>Pilih tipe</option>
+                        <option value="TA">TA — Typical Angina</option>
+                        <option value="ATA">ATA — Atypical Angina</option>
+                        <option value="NAP">NAP — Non-Anginal Pain</option>
+                        <option value="ASY">ASY — Asymptomatic</option>
+                    </select>
+                </div>
+
+                <div class="field">
+                    <label>RestingECG — Hasil EKG</label>
+                    <select name="resting_ecg" required>
+                        <option value="" disabled selected>Pilih hasil</option>
+                        <option value="Normal">Normal</option>
+                        <option value="ST">ST — Abnormalitas ST-T</option>
+                        <option value="LVH">LVH — Hipertrofi ventrikel kiri</option>
+                    </select>
+                </div>
+
+                <div class="field">
+                    <label>ExerciseAngina — Angina saat Olahraga</label>
+                    <select name="exercise_angina" required>
+                        <option value="" disabled selected>Pilih</option>
+                        <option value="Y">Y — Ya</option>
+                        <option value="N">N — Tidak</option>
+                    </select>
+                </div>
+
+                <div class="field">
+                    <label>ST_Slope — Kemiringan Segmen ST</label>
+                    <select name="st_slope" required>
+                        <option value="" disabled selected>Pilih</option>
+                        <option value="Up">Up — Naik</option>
+                        <option value="Flat">Flat — Datar</option>
+                        <option value="Down">Down — Turun</option>
+                    </select>
+                </div>
+
+            </div>
+
+            <hr class="divider">
+            <button class="btn" type="submit">Jalankan Prediksi</button>
+        </form>
+
+        <!-- ── Hasil ──────────────────────────────────────────────── -->
+        {% if result %}
+        <div class="result">
+
+            <!-- Header: label + confidence utama -->
+            <div class="result-header {{ 'disease' if result.disease else 'normal' }}">
+                <div>
+                    <div class="verdict">{{ result.label }}</div>
+                    <div style="font-size:12px; color: var(--text-dim); margin-top:4px;">
+                        {% if result.disease %}
+                            Risiko penyakit jantung terdeteksi
+                        {% else %}
+                            Tidak terdeteksi penyakit jantung
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="conf-wrap">
+                    <div class="conf-label-sm">Confidence Score</div>
+                    <div class="conf-pct">{{ result.confidence }}%</div>
+                </div>
+            </div>
+
+            <!-- Progress bar confidence -->
+            <div class="conf-bar-wrap {{ 'disease' if result.disease else 'normal' }}">
+                <div class="bar-track">
+                    <div class="bar-fill" style="width: {{ result.confidence }}%"></div>
+                </div>
+            </div>
+
+            <!-- Probabilitas dua kelas -->
+            <div class="prob-row">
+                <div class="prob-item">
+                    <div class="pl">P(Heart Disease)</div>
+                    <div class="pv pv-disease">{{ result.prob_disease }}%</div>
+                </div>
+                <div class="prob-item">
+                    <div class="pl">P(Normal)</div>
+                    <div class="pv pv-normal">{{ result.prob_normal }}%</div>
+                </div>
+            </div>
+
+            <!-- Ringkasan input -->
+            <div class="chips-wrap">
+                <span class="chip">Age {{ result.age }}</span>
+                <span class="chip">{{ result.sex_label }}</span>
+                <span class="chip">{{ result.chest_pain }}</span>
+                <span class="chip">BP {{ result.resting_bp }}</span>
+                <span class="chip">Chol {{ result.cholesterol }}</span>
+                <span class="chip">MaxHR {{ result.max_hr }}</span>
+                <span class="chip">Oldpeak {{ result.oldpeak }}</span>
+                <span class="chip">ECG {{ result.resting_ecg }}</span>
+                <span class="chip">Angina {{ result.exercise_angina }}</span>
+                <span class="chip">{{ result.st_slope }}</span>
+                <span class="chip">FBS {{ result.fasting_bs_lbl }}</span>
+            </div>
+
+            <!-- Feature importance top-10 -->
+            <div class="fi-wrap">
+                <div class="fi-title">Feature Importance (Top 10)</div>
+                {% for nama, pct in result.fi %}
+                <div class="fi-row">
+                    <span class="fi-name" title="{{ nama }}">{{ nama }}</span>
+                    <div class="fi-track">
+                        <div class="fi-bar" style="width: {{ [pct * 5, 100] | min }}%"></div>
+                    </div>
+                    <span class="fi-pct">{{ pct }}%</span>
+                </div>
+                {% endfor %}
+            </div>
+
+        </div>
+        {% endif %}
+
+        {% if error %}
+        <div class="error-box">{{ error }}</div>
+        {% endif %}
+    </div>
+
+</div>
+</body>
+</html>

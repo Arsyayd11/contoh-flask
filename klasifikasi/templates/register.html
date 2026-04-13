@@ -1,0 +1,159 @@
+{% extends "base.html" %}
+{% block title %}Daftar Akun — HeartCheck{% endblock %}
+
+{% block extra_css %}
+<style>
+    .auth-wrap {
+        max-width: 440px;
+        margin: 32px auto 0;
+    }
+    .auth-brand {
+        text-align: center;
+        margin-bottom: 24px;
+    }
+    .auth-brand .ab-icon {
+        font-size: 42px;
+        margin-bottom: 10px;
+    }
+    .auth-brand h1 { font-size: 24px; font-weight: 700; }
+    .auth-brand p  { font-size: 14px; color: var(--text-dim); margin-top: 4px; }
+
+    .auth-card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        padding: 32px;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+    }
+
+    .auth-footer {
+        text-align: center;
+        margin-top: 20px;
+        font-size: 14px;
+        color: var(--text-dim);
+    }
+    .auth-footer a { color: var(--primary); font-weight: 600; text-decoration: none; }
+    .auth-footer a:hover { text-decoration: underline; }
+
+    .benefit-list {
+        background: var(--primary-lt);
+        border: 1px solid #86efac;
+        border-radius: 8px;
+        padding: 14px 16px;
+        margin-bottom: 20px;
+        font-size: 13px;
+        color: var(--primary-dk);
+    }
+    .benefit-list ul { padding-left: 18px; margin-top: 6px; }
+    .benefit-list li { margin-bottom: 4px; line-height: 1.5; }
+
+    .pw-hint { font-size: 11px; color: var(--text-dim); margin-top: 4px; }
+
+    /* Validasi password match real-time */
+    .form-control.valid   { border-color: var(--primary); }
+    .form-control.invalid { border-color: var(--danger); }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="auth-wrap">
+
+    <div class="auth-brand">
+        <div class="ab-icon">💚</div>
+        <h1>Buat Akun Baru</h1>
+        <p>Daftarkan diri untuk menyimpan riwayat prediksi</p>
+    </div>
+
+    <!-- Manfaat mendaftar -->
+    <div class="benefit-list">
+        <strong>✅ Keuntungan memiliki akun:</strong>
+        <ul>
+            <li>Simpan dan pantau riwayat prediksi Anda</li>
+            <li>Bandingkan hasil dari waktu ke waktu</li>
+            <li>Akses gratis tanpa batas</li>
+        </ul>
+    </div>
+
+    <div class="auth-card">
+        <form method="POST" action="{{ url_for('register') }}" id="formDaftar">
+
+            <div class="form-group">
+                <label class="form-label" for="nama">Nama Lengkap</label>
+                <input class="form-control" type="text" id="nama" name="nama"
+                       placeholder="Nama Anda" required
+                       value="{{ request.form.get('nama', '') }}" autocomplete="name">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="email">Alamat Email</label>
+                <input class="form-control" type="email" id="email" name="email"
+                       placeholder="nama@email.com" required
+                       value="{{ request.form.get('email', '') }}" autocomplete="email">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="password">Kata Sandi</label>
+                <input class="form-control" type="password" id="password" name="password"
+                       placeholder="Minimal 8 karakter" required autocomplete="new-password"
+                       oninput="cekPassword()">
+                <div class="pw-hint">Gunakan minimal 8 karakter untuk keamanan akun Anda.</div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="konfirm_password">Konfirmasi Kata Sandi</label>
+                <input class="form-control" type="password" id="konfirm_password" name="konfirm_password"
+                       placeholder="Ulangi kata sandi" required autocomplete="new-password"
+                       oninput="cekPassword()">
+                <div class="pw-hint" id="pw-match-msg"></div>
+            </div>
+
+            <button class="btn-primary full" type="submit" style="margin-top:8px;" id="btnDaftar">
+                💚 Buat Akun
+            </button>
+        </form>
+    </div>
+
+    <div class="auth-footer">
+        Sudah punya akun?
+        <a href="{{ url_for('login') }}">Masuk di sini</a>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Validasi password match secara real-time
+function cekPassword() {
+    const pw     = document.getElementById('password').value;
+    const konfirm = document.getElementById('konfirm_password').value;
+    const msg    = document.getElementById('pw-match-msg');
+    const field  = document.getElementById('konfirm_password');
+    const btn    = document.getElementById('btnDaftar');
+
+    if (konfirm.length === 0) {
+        msg.textContent = '';
+        field.classList.remove('valid', 'invalid');
+        return;
+    }
+
+    if (pw === konfirm && pw.length >= 8) {
+        msg.textContent = '✅ Kata sandi cocok.';
+        msg.style.color = 'var(--primary)';
+        field.classList.add('valid');
+        field.classList.remove('invalid');
+        btn.disabled = false;
+    } else if (pw !== konfirm) {
+        msg.textContent = '❌ Kata sandi tidak cocok.';
+        msg.style.color = 'var(--danger)';
+        field.classList.add('invalid');
+        field.classList.remove('valid');
+        btn.disabled = true;
+    } else if (pw.length < 8) {
+        msg.textContent = '⚠️ Kata sandi terlalu pendek.';
+        msg.style.color = 'var(--warning)';
+        field.classList.remove('valid', 'invalid');
+        btn.disabled = true;
+    }
+}
+</script>
+{% endblock %}

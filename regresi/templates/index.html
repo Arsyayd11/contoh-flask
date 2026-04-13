@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>House Price — Prediksi</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600&family=Source+Sans+3:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --cream    : #faf7f2;
+            --paper    : #f2ede4;
+            --ink      : #1c1917;
+            --ink-mid  : #44403c;
+            --ink-dim  : #78716c;
+            --rule     : #e2d9cc;
+            --accent   : #b45309;
+            --green    : #15803d;
+            --serif    : 'Playfair Display', Georgia, serif;
+            --sans     : 'Source Sans 3', sans-serif;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            background: var(--cream);
+            color: var(--ink);
+            font-family: var(--sans);
+            min-height: 100vh;
+            padding: 48px 20px;
+        }
+
+        .wrap { max-width: 580px; margin: 0 auto; }
+
+        /* Navigasi kembali */
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12px;
+            color: var(--ink-dim);
+            text-decoration: none;
+            margin-bottom: 20px;
+            transition: color 0.15s;
+        }
+        .back-link:hover { color: var(--accent); }
+
+        /* Header */
+        .hdr { margin-bottom: 28px; border-bottom: 2px solid var(--ink); padding-bottom: 16px; }
+        .hdr .eyebrow {
+            font-size: 11px;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            color: var(--accent);
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+        .hdr h1 { font-family: var(--serif); font-size: 30px; font-weight: 600; line-height: 1.15; }
+        .hdr p  { font-size: 13px; color: var(--ink-dim); margin-top: 8px; line-height: 1.5; }
+
+        /* Badge performa model */
+        .model-badges {
+            display: flex;
+            gap: 8px;
+            margin-top: 10px;
+            flex-wrap: wrap;
+        }
+        .mbadge {
+            font-size: 11px;
+            padding: 3px 10px;
+            border-radius: 20px;
+            border: 1px solid var(--rule);
+            background: var(--paper);
+            color: var(--ink-dim);
+            font-weight: 600;
+        }
+
+        /* Layout dua kolom */
+        .layout { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; align-items: start; }
+        @media (max-width: 540px) { .layout { grid-template-columns: 1fr; } }
+
+        /* Form */
+        .form-section { margin-bottom: 22px; }
+        .form-section-title {
+            font-size: 10px;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: var(--ink-dim);
+            margin-bottom: 12px;
+            padding-bottom: 6px;
+            border-bottom: 1px solid var(--rule);
+        }
+
+        .field { margin-bottom: 14px; }
+        label { display: block; font-size: 12px; font-weight: 600; color: var(--ink-mid); margin-bottom: 4px; }
+        .hint { font-size: 11px; color: var(--ink-dim); margin-bottom: 5px; }
+
+        input[type="number"], select {
+            width: 100%;
+            padding: 9px 10px;
+            border: 1px solid var(--rule);
+            border-radius: 4px;
+            font-size: 14px;
+            font-family: var(--sans);
+            background: white;
+            color: var(--ink);
+            transition: border-color 0.15s;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        select {
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2378716c' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 10px center;
+            padding-right: 28px;
+            -webkit-appearance: none;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 12px;
+            background: var(--ink);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-family: var(--sans);
+            font-size: 13px;
+            font-weight: 600;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: background 0.15s;
+        }
+        .btn:hover { background: var(--ink-mid); }
+
+        /* ── Panel hasil ──────────────────────────────────────────── */
+        .result-panel {
+            background: white;
+            border: 1px solid var(--rule);
+            border-radius: 6px;
+            padding: 0;
+            overflow: hidden;
+        }
+
+        .result-section {
+            padding: 18px 20px;
+            border-bottom: 1px solid var(--rule);
+        }
+        .result-section:last-child { border-bottom: none; }
+
+        .result-label {
+            font-size: 10px;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: var(--ink-dim);
+            margin-bottom: 6px;
+        }
+
+        .result-price {
+            font-family: var(--serif);
+            font-size: 36px;
+            font-weight: 600;
+            color: var(--accent);
+            line-height: 1;
+            margin-bottom: 4px;
+        }
+
+        .result-sub { font-size: 12px; color: var(--ink-dim); }
+
+        /* Gauge bar */
+        .gauge-label { display: flex; justify-content: space-between; font-size: 10px; color: var(--ink-dim); margin-bottom: 6px; margin-top: 14px; }
+        .gauge-track {
+            height: 8px;
+            background: var(--paper);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        .gauge-fill {
+            height: 100%;
+            background: linear-gradient(to right, #84cc16, #f59e0b, #ef4444);
+            border-radius: 4px;
+            transition: width 0.7s ease;
+        }
+
+        /* Confidence / interval section */
+        .interval-row {
+            display: flex;
+            gap: 10px;
+        }
+        .interval-item {
+            flex: 1;
+            background: var(--paper);
+            border-radius: 5px;
+            padding: 10px 12px;
+            text-align: center;
+        }
+        .interval-item .il { font-size: 10px; color: var(--ink-dim); margin-bottom: 4px; }
+        .interval-item .iv { font-size: 15px; font-weight: 600; color: var(--ink); }
+
+        /* R² bar */
+        .r2-bar-wrap { margin-top: 8px; }
+        .r2-label { display: flex; justify-content: space-between; font-size: 11px; color: var(--ink-dim); margin-bottom: 5px; }
+        .r2-track {
+            height: 6px;
+            background: var(--rule);
+            border-radius: 3px;
+            overflow: hidden;
+        }
+        .r2-fill {
+            height: 100%;
+            background: var(--green);
+            border-radius: 3px;
+            transition: width 0.6s ease;
+        }
+
+        /* Tabel ringkasan input */
+        .summary-title { font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-dim); margin-bottom: 10px; }
+        .summary-row { display: flex; justify-content: space-between; padding: 5px 0; border-bottom: 1px solid var(--paper); font-size: 12px; }
+        .summary-row:last-child { border-bottom: none; }
+        .summary-row .key { color: var(--ink-dim); }
+        .summary-row .val { font-weight: 600; color: var(--ink); }
+
+        /* Panel kosong */
+        .empty-panel {
+            background: var(--paper);
+            border-radius: 6px;
+            padding: 28px 20px;
+            text-align: center;
+        }
+        .empty-panel p { font-size: 13px; color: var(--ink-dim); line-height: 1.6; }
+
+        .error-box {
+            margin-top: 14px;
+            padding: 10px 14px;
+            background: #fef3c7;
+            border-left: 3px solid var(--accent);
+            border-radius: 3px;
+            font-size: 13px;
+            color: #92400e;
+        }
+    </style>
+</head>
+<body>
+<div class="wrap">
+
+    <!-- Navigasi kembali ke landing -->
+    <a href="/" class="back-link">← Kembali ke Beranda</a>
+
+    <div class="hdr">
+        <div class="eyebrow">Gradient Boosting · Regresi</div>
+        <h1>Estimasi Harga<br>Properti</h1>
+        <p>Isi karakteristik properti di sebelah kiri untuk mendapatkan estimasi harga beserta interval kepercayaan.</p>
+        <div class="model-badges">
+            <span class="mbadge">R² = {{ r2 }}</span>
+            <span class="mbadge">MAE = ${{ "{:,}".format(mae_usd) }}</span>
+        </div>
+    </div>
+
+    <div class="layout">
+
+        <!-- Form kiri -->
+        <div class="form-wrap">
+            <form method="POST" action="/prediksi">
+
+                <div class="form-section">
+                    <div class="form-section-title">Fitur Numerik</div>
+
+                    <div class="field">
+                        <label>RM — Rata-rata Jumlah Kamar</label>
+                        <p class="hint">Jumlah kamar per unit (biasanya 4–8)</p>
+                        <input type="number" name="rm" min="3" max="9" step="0.1" placeholder="6.5" required>
+                    </div>
+
+                    <div class="field">
+                        <label>LSTAT — % Penduduk Kelas Bawah</label>
+                        <p class="hint">Persentase populasi kelas ekonomi bawah</p>
+                        <input type="number" name="lstat" min="1" max="40" step="0.1" placeholder="10.5" required>
+                    </div>
+
+                    <div class="field">
+                        <label>PTRATIO — Rasio Murid / Guru</label>
+                        <p class="hint">Jumlah murid per guru di area tersebut</p>
+                        <input type="number" name="ptratio" min="12" max="22" step="0.1" placeholder="16.0" required>
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <div class="form-section-title">Fitur Kategorikal</div>
+
+                    <div class="field">
+                        <label>CHAS — Pinggir Sungai Charles?</label>
+                        <p class="hint">Apakah properti berbatasan dengan sungai</p>
+                        <select name="chas" required>
+                            <option value="" disabled selected>Pilih</option>
+                            <option value="1">Ya — Berbatasan sungai</option>
+                            <option value="0">Tidak</option>
+                        </select>
+                    </div>
+
+                    <div class="field">
+                        <label>RAD — Aksesibilitas Jalan Raya</label>
+                        <p class="hint">Indeks akses ke jalan raya radial (1=rendah, 8=tinggi)</p>
+                        <select name="rad" required>
+                            <option value="" disabled selected>Pilih indeks</option>
+                            <option value="1">1 — Sangat rendah</option>
+                            <option value="2">2</option>
+                            <option value="3">3</option>
+                            <option value="4">4</option>
+                            <option value="5">5</option>
+                            <option value="6">6</option>
+                            <option value="7">7</option>
+                            <option value="8">8 — Sangat tinggi</option>
+                        </select>
+                    </div>
+                </div>
+
+                <button class="btn" type="submit">Estimasi Harga</button>
+            </form>
+
+            {% if error %}
+            <div class="error-box">{{ error }}</div>
+            {% endif %}
+        </div>
+
+        <!-- Panel hasil kanan -->
+        <div>
+            {% if result %}
+            <div class="result-panel">
+
+                <!-- Harga prediksi utama -->
+                <div class="result-section">
+                    <div class="result-label">Estimasi Harga</div>
+                    <div class="result-price">${{ "{:,}".format(result.harga) }}</div>
+                    <div class="result-sub">Nilai median area: ${{ result.harga_k }}k</div>
+
+                    <div class="gauge-label">
+                        <span>$5k (rendah)</span>
+                        <span>$50k (tinggi)</span>
+                    </div>
+                    <div class="gauge-track">
+                        <div class="gauge-fill" style="width: {{ result.pct }}%"></div>
+                    </div>
+                </div>
+
+                <!-- Interval kepercayaan ±MAE -->
+                <div class="result-section">
+                    <div class="result-label">Interval Kepercayaan (±MAE = ${{ "{:,}".format(result.mae_usd) }})</div>
+                    <div class="interval-row">
+                        <div class="interval-item">
+                            <div class="il">Batas Bawah</div>
+                            <div class="iv">${{ "{:,}".format(result.bawah) }}</div>
+                        </div>
+                        <div class="interval-item">
+                            <div class="il">Batas Atas</div>
+                            <div class="iv">${{ "{:,}".format(result.atas) }}</div>
+                        </div>
+                    </div>
+                    <p style="font-size:11px; color:var(--ink-dim); margin-top:8px; line-height:1.5;">
+                        Harga aktual diperkirakan berada di antara rentang ini berdasarkan rata-rata error model (MAE).
+                    </p>
+                </div>
+
+                <!-- Kualitas model: R² -->
+                <div class="result-section">
+                    <div class="result-label">Kualitas Model (R² Score)</div>
+                    <div class="r2-bar-wrap">
+                        <div class="r2-label">
+                            <span>R² = {{ result.r2_pct }}%</span>
+                            <span>Semakin tinggi = semakin baik</span>
+                        </div>
+                        <div class="r2-track">
+                            <div class="r2-fill" style="width: {{ result.r2_pct }}%"></div>
+                        </div>
+                    </div>
+                    <p style="font-size:11px; color:var(--ink-dim); margin-top:8px; line-height:1.5;">
+                        Model menjelaskan {{ result.r2_pct }}% variasi harga dalam data uji.
+                    </p>
+                </div>
+
+                <!-- Ringkasan input -->
+                <div class="result-section">
+                    <div class="summary-title">Input yang Digunakan</div>
+                    <div class="summary-row"><span class="key">RM</span><span class="val">{{ result.rm }} kamar</span></div>
+                    <div class="summary-row"><span class="key">LSTAT</span><span class="val">{{ result.lstat }}%</span></div>
+                    <div class="summary-row"><span class="key">PTRATIO</span><span class="val">{{ result.ptratio }}</span></div>
+                    <div class="summary-row"><span class="key">Pinggir sungai</span><span class="val">{{ result.chas }}</span></div>
+                    <div class="summary-row"><span class="key">RAD</span><span class="val">{{ result.rad }}</span></div>
+                </div>
+
+            </div>
+            {% else %}
+            <div class="empty-panel">
+                <p>Isi form di sebelah kiri dan klik <strong>Estimasi Harga</strong> untuk melihat prediksi harga beserta interval kepercayaan.</p>
+            </div>
+            {% endif %}
+        </div>
+
+    </div>
+</div>
+</body>
+</html>

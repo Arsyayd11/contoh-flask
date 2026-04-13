@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Titanic Predictor — Versi Sederhana</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 480px;
+            margin: 40px auto;
+            padding: 0 20px;
+            background: #f5f5f5;
+            color: #222;
+        }
+
+        h1 { font-size: 20px; margin-bottom: 4px; }
+        p.sub { font-size: 13px; color: #666; margin-top: 0; margin-bottom: 16px; }
+
+        /* Badge akurasi model */
+        .model-info {
+            background: #eff6ff;
+            border: 1px solid #bfdbfe;
+            border-radius: 6px;
+            padding: 10px 14px;
+            font-size: 13px;
+            color: #1e40af;
+            margin-bottom: 16px;
+        }
+        .model-info strong { font-size: 14px; }
+
+        form {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+        }
+
+        .grup { margin-bottom: 14px; }
+
+        label {
+            display: block;
+            font-size: 13px;
+            font-weight: bold;
+            margin-bottom: 4px;
+        }
+
+        /* Teks hint kecil di bawah label */
+        .hint {
+            font-size: 11px;
+            color: #888;
+            margin-bottom: 4px;
+            font-weight: normal;
+        }
+
+        select, input[type="number"] {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 14px;
+            box-sizing: border-box;
+        }
+
+        button {
+            width: 100%;
+            padding: 10px;
+            background: #2563eb;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 14px;
+            cursor: pointer;
+            margin-top: 4px;
+        }
+
+        button:hover { background: #1d4ed8; }
+
+        /* Kotak hasil prediksi */
+        .hasil-wrap { margin-top: 16px; }
+
+        .hasil {
+            padding: 14px;
+            border-radius: 6px;
+            text-align: center;
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+
+        .selamat       { background: #dcfce7; color: #166534; }
+        .tidak-selamat { background: #fee2e2; color: #991b1b; }
+
+        /* Kotak confidence score */
+        .confidence-box {
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            padding: 12px 14px;
+        }
+        .conf-label {
+            font-size: 11px;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 6px;
+        }
+        .conf-val {
+            font-size: 22px;
+            font-weight: bold;
+            color: #1e40af;
+            margin-bottom: 8px;
+        }
+
+        /* Progress bar confidence */
+        .bar-track {
+            height: 8px;
+            background: #e5e7eb;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        .bar-fill {
+            height: 100%;
+            border-radius: 4px;
+            background: #2563eb;
+            transition: width 0.5s ease;
+        }
+        .conf-note {
+            font-size: 11px;
+            color: #888;
+            margin-top: 6px;
+        }
+
+        .error {
+            margin-top: 14px;
+            padding: 10px;
+            background: #fef9c3;
+            border-radius: 4px;
+            font-size: 13px;
+            color: #713f12;
+        }
+    </style>
+</head>
+<body>
+
+<h1>Titanic Survival Predictor</h1>
+<p class="sub">Versi sederhana — untuk penjelasan dasar Flask &amp; Machine Learning</p>
+
+<!-- Informasi akurasi model (diisi oleh Jinja2 dari app.py) -->
+{% if accuracy %}
+<div class="model-info">
+    Model: <strong>Decision Tree Classifier</strong> &nbsp;|&nbsp;
+    Akurasi pada data uji: <strong>{{ accuracy }}%</strong>
+    <br><small>Akurasi menunjukkan seberapa tepat model memprediksi data yang belum pernah dilihatnya.</small>
+</div>
+{% endif %}
+
+<form method="POST" action="/">
+
+    <!-- DROPDOWN — fitur kategorikal (pilihan terbatas) -->
+    <div class="grup">
+        <label for="pclass">
+            Kelas Tiket
+            <span class="hint">Kelas 1 = paling mahal, Kelas 3 = paling murah</span>
+        </label>
+        <select id="pclass" name="pclass" required>
+            <option value="" disabled selected>-- Pilih --</option>
+            <option value="1">Kelas 1 (Pertama)</option>
+            <option value="2">Kelas 2 (Kedua)</option>
+            <option value="3">Kelas 3 (Ketiga)</option>
+        </select>
+    </div>
+
+    <!-- DROPDOWN — fitur kategorikal -->
+    <div class="grup">
+        <label for="sex">Jenis Kelamin</label>
+        <select id="sex" name="sex" required>
+            <option value="" disabled selected>-- Pilih --</option>
+            <option value="male">Laki-laki</option>
+            <option value="female">Perempuan</option>
+        </select>
+    </div>
+
+    <!-- INPUT ANGKA — fitur numerik -->
+    <div class="grup">
+        <label for="age">
+            Usia (tahun)
+            <span class="hint">Isi angka bulat, misal: 29</span>
+        </label>
+        <input type="number" id="age" name="age"
+               min="1" max="100" step="1"
+               placeholder="contoh: 29" required>
+    </div>
+
+    <!-- INPUT ANGKA — fitur numerik -->
+    <div class="grup">
+        <label for="fare">
+            Harga Tiket (USD)
+            <span class="hint">Harga tiket asli dalam dolar. Kelas 1 biasanya di atas 50.</span>
+        </label>
+        <input type="number" id="fare" name="fare"
+               min="0" step="0.01"
+               placeholder="contoh: 52.00" required>
+    </div>
+
+    <button type="submit">Prediksi Keselamatan</button>
+</form>
+
+<!-- ── Hasil prediksi (ditampilkan hanya jika ada hasil dari server) ── -->
+{% if prediction %}
+<div class="hasil-wrap">
+
+    <!-- Label prediksi utama -->
+    <div class="hasil {{ 'selamat' if prediction == 'Selamat' else 'tidak-selamat' }}">
+        {{ prediction }}
+    </div>
+
+    <!-- Confidence score — seberapa yakin model dengan prediksinya -->
+    {% if confidence %}
+    <div class="confidence-box">
+        <div class="conf-label">Confidence Score (Keyakinan Model)</div>
+        <div class="conf-val">{{ confidence }}%</div>
+
+        <!-- Progress bar visual -->
+        <div class="bar-track">
+            <div class="bar-fill" style="width: {{ confidence }}%"></div>
+        </div>
+
+        <div class="conf-note">
+            <!-- Penjelasan singkat confidence score -->
+            {% if confidence >= 80 %}
+                Model sangat yakin dengan prediksi ini.
+            {% elif confidence >= 60 %}
+                Model cukup yakin, namun masih ada ketidakpastian.
+            {% else %}
+                Model kurang yakin — prediksi ini perlu diinterpretasi hati-hati.
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+
+</div>
+{% endif %}
+
+{% if error %}
+    <div class="error">{{ error }}</div>
+{% endif %}
+
+</body>
+</html>

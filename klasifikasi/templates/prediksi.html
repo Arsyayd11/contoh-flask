@@ -1,0 +1,619 @@
+{% extends "base.html" %}
+{% block title %}Prediksi Penyakit Jantung — HeartCheck{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* ── Header halaman ──────────────────────────────────────────── */
+    .page-hdr { margin-bottom: 20px; }
+    .page-hdr h1 { font-size: 24px; font-weight: 700; margin-bottom: 6px; }
+    .page-hdr p  { font-size: 14px; color: var(--text-dim); }
+    .model-pills { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+    .model-pill  {
+        font-size: 11px; font-weight: 600;
+        background: var(--primary-lt); color: var(--primary-dk);
+        border: 1px solid #86efac;
+        padding: 3px 10px; border-radius: 20px;
+    }
+
+    /* ── Card form ───────────────────────────────────────────────── */
+    .form-card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        margin-bottom: 20px;
+    }
+    .form-card-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 16px 24px;
+        border-bottom: 1px solid var(--border);
+        background: #f9fafb;
+        border-radius: 12px 12px 0 0;
+    }
+    .form-card-header .fch-title { font-size: 14px; font-weight: 700; color: var(--text); }
+    .form-card-body { padding: 24px; }
+
+    /* ── Tombol isi contoh ───────────────────────────────────────── */
+    .btn-contoh {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 7px 13px;
+        background: #eff6ff;
+        color: var(--info);
+        border: 1px solid #bfdbfe;
+        border-radius: 8px;
+        font-size: 12px;
+        font-weight: 600;
+        cursor: pointer;
+        font-family: var(--sans);
+        transition: background 0.15s;
+        white-space: nowrap;
+    }
+    .btn-contoh:hover { background: #dbeafe; }
+
+    /* ── Section label dalam form ────────────────────────────────── */
+    .section-label {
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.07em;
+        color: var(--primary);
+        margin-bottom: 14px;
+    }
+
+    /* ── Grid 2 kolom di dalam form ──────────────────────────────── */
+    .grid-2 {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0 20px;
+    }
+    @media (max-width: 560px) { .grid-2 { grid-template-columns: 1fr; } }
+
+    /* ── Hint teks di bawah label ────────────────────────────────── */
+    .form-hint {
+        font-size: 11px;
+        color: var(--muted);
+        margin: 2px 0 6px;
+        line-height: 1.45;
+    }
+
+    /* ── Tooltip ⓘ ────────────────────────────────────────────────── */
+    .info-tip-wrap {
+        display: inline-block;
+        position: relative;
+        vertical-align: middle;
+        margin-left: 5px;
+    }
+    .info-tip-icon {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 15px;
+        height: 15px;
+        background: #dbeafe;
+        color: #1d4ed8;
+        border: 1px solid #93c5fd;
+        border-radius: 50%;
+        font-size: 9px;
+        font-weight: 700;
+        font-style: italic;
+        cursor: help;
+        line-height: 1;
+        flex-shrink: 0;
+    }
+    .info-tip-box {
+        display: none;
+        position: absolute;
+        left: 0;
+        top: calc(100% + 6px);
+        background: #1f2937;
+        color: #f9fafb;
+        border-radius: 8px;
+        padding: 10px 14px;
+        font-size: 11px;
+        min-width: 260px;
+        z-index: 500;
+        line-height: 1.75;
+        box-shadow: 0 4px 16px rgba(0,0,0,0.28);
+        font-weight: 400;
+        white-space: normal;
+        pointer-events: none;
+        text-transform: none;
+        letter-spacing: 0;
+    }
+    /* Segitiga kecil atas tooltip */
+    .info-tip-box::before {
+        content: '';
+        position: absolute;
+        bottom: 100%;
+        left: 6px;
+        border: 5px solid transparent;
+        border-bottom-color: #1f2937;
+    }
+    .info-tip-wrap:hover .info-tip-box { display: block; }
+    .info-tip-box b { color: #86efac; }
+
+    .divider { border: none; border-top: 1px solid var(--border); margin: 18px 0; }
+
+    /* ── Hasil prediksi ──────────────────────────────────────────── */
+    .result-card {
+        background: var(--surface);
+        border-radius: 12px;
+        overflow: hidden;
+        border: 1px solid var(--border);
+        margin-bottom: 20px;
+    }
+    .result-header {
+        padding: 20px 24px;
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 12px;
+    }
+    .result-header.risiko-tinggi { background: var(--danger-lt); border-bottom: 1px solid #fca5a5; }
+    .result-header.risiko-rendah { background: var(--primary-lt); border-bottom: 1px solid #86efac; }
+    .result-icon    { font-size: 32px; flex-shrink: 0; }
+    .result-verdict { font-size: 20px; font-weight: 700; margin-bottom: 4px; }
+    .risiko-tinggi .result-verdict { color: var(--danger); }
+    .risiko-rendah .result-verdict { color: var(--primary-dk); }
+    .result-sub { font-size: 13px; color: var(--text-dim); }
+    .confidence-badge { text-align: right; flex-shrink: 0; }
+    .confidence-badge .cb-label { font-size: 10px; color: var(--text-dim); margin-bottom: 3px; text-transform: uppercase; letter-spacing: 0.06em; }
+    .confidence-badge .cb-val   { font-size: 26px; font-weight: 700; }
+    .risiko-tinggi .cb-val { color: var(--danger); }
+    .risiko-rendah .cb-val { color: var(--primary); }
+
+    /* Bar confidence */
+    .conf-bar-section { padding: 12px 24px; border-bottom: 1px solid var(--border); }
+    .bar-track  { height: 7px; background: #e5e7eb; border-radius: 4px; overflow: hidden; }
+    .bar-fill   { height: 100%; border-radius: 4px; width: 0; transition: width 0.8s ease; }
+    .risiko-tinggi .bar-fill { background: var(--danger); }
+    .risiko-rendah .bar-fill { background: var(--primary); }
+    .bar-note   { font-size: 11px; color: var(--text-dim); margin-top: 6px; }
+
+    /* Probabilitas dua kelas */
+    .prob-section  { padding: 14px 24px; border-bottom: 1px solid var(--border); }
+    .prob-label    { font-size: 11px; font-weight: 600; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 10px; }
+    .prob-bars     { display: flex; flex-direction: column; gap: 8px; }
+    .prob-row      { display: flex; align-items: center; gap: 10px; font-size: 12px; }
+    .prob-name     { width: 110px; color: var(--text-mid); font-weight: 500; }
+    .prob-track    { flex: 1; height: 8px; background: #e5e7eb; border-radius: 4px; overflow: hidden; }
+    .prob-fill-d   { height: 100%; width: 0; background: var(--danger); border-radius: 4px; }
+    .prob-fill-n   { height: 100%; width: 0; background: var(--primary); border-radius: 4px; }
+    .prob-name-d   { color: var(--danger); }
+    .prob-name-n   { color: var(--primary); }
+    .prob-pct-d    { width: 40px; text-align: right; font-weight: 600; color: var(--danger); }
+    .prob-pct-n    { width: 40px; text-align: right; font-weight: 600; color: var(--primary); }
+
+    /* Feature importance */
+    .fi-section { padding: 14px 24px; border-bottom: 1px solid var(--border); }
+    .fi-label   { font-size: 11px; font-weight: 600; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 10px; }
+    .fi-row     { display: flex; align-items: center; gap: 8px; margin-bottom: 7px; font-size: 11px; }
+    .fi-name    { width: 130px; color: var(--text-mid); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 500; }
+    .fi-track   { flex: 1; height: 5px; background: #e5e7eb; border-radius: 3px; overflow: hidden; }
+    .fi-bar     { height: 100%; width: 0; background: var(--primary); border-radius: 3px; }
+    .fi-pct     { width: 38px; text-align: right; color: var(--text-dim); }
+
+    /* Ringkasan input */
+    .chip-section { padding: 14px 24px; border-bottom: 1px solid var(--border); }
+    .chip-label   { font-size: 11px; font-weight: 600; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 10px; }
+    .chip-wrap    { display: flex; flex-wrap: wrap; gap: 6px; }
+    .chip {
+        font-size: 11px;
+        background: #f3f4f6;
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        padding: 4px 9px;
+        color: var(--text-mid);
+        font-weight: 500;
+    }
+
+    /* Pesan simpan riwayat */
+    .save-notice {
+        margin: 16px 24px 0;
+        padding: 10px 14px;
+        background: var(--primary-lt);
+        border: 1px solid #86efac;
+        border-radius: 8px;
+        font-size: 12px;
+        color: var(--primary-dk);
+    }
+    .warn-notice {
+        margin: 16px 24px 0;
+        padding: 10px 14px;
+        background: var(--warning-lt);
+        border: 1px solid #fcd34d;
+        border-radius: 8px;
+        font-size: 12px;
+        color: #92400e;
+    }
+
+    /* Disclaimer */
+    .result-disclaimer {
+        padding: 12px 24px 16px;
+        font-size: 11px;
+        color: var(--muted);
+        border-top: 1px solid var(--border);
+        line-height: 1.5;
+        margin-top: 16px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<div class="page-hdr">
+    <h1>🔍 Prediksi Risiko Penyakit Jantung</h1>
+    <p>Isi 11 indikator klinis di bawah untuk mendapatkan analisis risiko penyakit jantung Anda.</p>
+    <div class="model-pills">
+        <span class="model-pill">Akurasi {{ accuracy }}%</span>
+        <span class="model-pill">AUC-ROC {{ auc }}</span>
+        <span class="model-pill">Random Forest · 200 Pohon</span>
+        <span class="model-pill">918 Data Pasien</span>
+    </div>
+</div>
+
+<!-- ── Card Form Input ───────────────────────────────────────────────── -->
+<div class="form-card">
+
+    <!-- Header card: judul + tombol isi contoh -->
+    <div class="form-card-header">
+        <span class="fch-title">📋 Data Klinis Pasien</span>
+        <button type="button" class="btn-contoh" onclick="isiContoh()">
+            ✨ Isi dengan Data Contoh
+        </button>
+    </div>
+
+    <div class="form-card-body">
+        <form method="POST" action="{{ url_for('prediksi') }}" id="formPrediksi">
+
+            <!-- ── Bagian 1: Data Dasar ────────────────────────────── -->
+            <div class="section-label">Data Dasar Pasien</div>
+            <div class="grid-2">
+
+                <div class="form-group">
+                    <label class="form-label" for="age">Usia (Tahun)</label>
+                    <p class="form-hint">Usia pasien saat ini dalam tahun (1–120)</p>
+                    <input class="form-control" type="number" id="age" name="age"
+                           min="1" max="120" step="1" placeholder="Contoh: 55" required
+                           value="{{ request.form.get('age', '') }}">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="sex">Jenis Kelamin</label>
+                    <p class="form-hint">Jenis kelamin biologis pasien</p>
+                    <select class="form-control" id="sex" name="sex" required>
+                        <option value="" disabled {% if not request.form.get('sex') %}selected{% endif %}>-- Pilih --</option>
+                        <option value="M" {% if request.form.get('sex')=='M' %}selected{% endif %}>Laki-laki</option>
+                        <option value="F" {% if request.form.get('sex')=='F' %}selected{% endif %}>Perempuan</option>
+                    </select>
+                </div>
+
+            </div>
+
+            <hr class="divider">
+
+            <!-- ── Bagian 2: Data Kardiovaskular ──────────────────── -->
+            <div class="section-label">Data Kardiovaskular</div>
+            <div class="grid-2">
+
+                <div class="form-group">
+                    <label class="form-label" for="chest_pain">
+                        Jenis Nyeri Dada
+                        <span class="info-tip-wrap">
+                            <span class="info-tip-icon">i</span>
+                            <div class="info-tip-box">
+                                <b>TA</b> — Nyeri khas jantung: terasa seperti tertekan atau diremas, bisa menjalar ke lengan/rahang<br>
+                                <b>ATA</b> — Nyeri tidak khas: gejala ada tapi tidak seperti angina tipikal<br>
+                                <b>NAP</b> — Nyeri bukan dari jantung: terasa tajam/menusuk, biasanya bukan angina<br>
+                                <b>ASY</b> — Tidak ada keluhan nyeri dada sama sekali
+                            </div>
+                        </span>
+                    </label>
+                    <p class="form-hint">Pilih tipe keluhan nyeri dada yang paling sesuai</p>
+                    <select class="form-control" id="chest_pain" name="chest_pain" required>
+                        <option value="" disabled {% if not request.form.get('chest_pain') %}selected{% endif %}>-- Pilih Tipe --</option>
+                        <option value="TA"  {% if request.form.get('chest_pain')=='TA'  %}selected{% endif %}>TA — Nyeri khas jantung (angina tipikal)</option>
+                        <option value="ATA" {% if request.form.get('chest_pain')=='ATA' %}selected{% endif %}>ATA — Nyeri tidak khas (angina atipikal)</option>
+                        <option value="NAP" {% if request.form.get('chest_pain')=='NAP' %}selected{% endif %}>NAP — Nyeri bukan dari jantung</option>
+                        <option value="ASY" {% if request.form.get('chest_pain')=='ASY' %}selected{% endif %}>ASY — Tidak ada keluhan nyeri dada</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="resting_bp">Tekanan Darah Istirahat (mm Hg)</label>
+                    <p class="form-hint">Tekanan darah saat tidak beraktivitas. Normal: 90–120 mm Hg</p>
+                    <input class="form-control" type="number" id="resting_bp" name="resting_bp"
+                           min="0" max="250" step="1" placeholder="Contoh: 130" required
+                           value="{{ request.form.get('resting_bp', '') }}">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="cholesterol">Kolesterol Serum (mm/dl)</label>
+                    <p class="form-hint">Kadar kolesterol total dalam darah. Normal: &lt; 200 mm/dl</p>
+                    <input class="form-control" type="number" id="cholesterol" name="cholesterol"
+                           min="0" max="600" step="1" placeholder="Contoh: 200" required
+                           value="{{ request.form.get('cholesterol', '') }}">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="max_hr">Detak Jantung Maksimum (bpm)</label>
+                    <p class="form-hint">Detak jantung tertinggi yang dicapai saat olahraga (60–202 bpm)</p>
+                    <input class="form-control" type="number" id="max_hr" name="max_hr"
+                           min="60" max="202" step="1" placeholder="Contoh: 150" required
+                           value="{{ request.form.get('max_hr', '') }}">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="oldpeak">Depresi Segmen ST (Oldpeak)</label>
+                    <p class="form-hint">Penurunan segmen ST dibanding kondisi istirahat (nilai bisa negatif)</p>
+                    <input class="form-control" type="number" id="oldpeak" name="oldpeak"
+                           min="-5" max="10" step="0.1" placeholder="Contoh: 1.5" required
+                           value="{{ request.form.get('oldpeak', '') }}">
+                </div>
+
+            </div>
+
+            <hr class="divider">
+
+            <!-- ── Bagian 3: Hasil Pemeriksaan ────────────────────── -->
+            <div class="section-label">Hasil Pemeriksaan Tambahan</div>
+            <div class="grid-2">
+
+                <div class="form-group">
+                    <label class="form-label" for="fasting_bs">Gula Darah Puasa &gt; 120 mg/dl</label>
+                    <p class="form-hint">Apakah kadar gula darah saat puasa melebihi 120 mg/dl?</p>
+                    <select class="form-control" id="fasting_bs" name="fasting_bs" required>
+                        <option value="" disabled {% if request.form.get('fasting_bs') is none %}selected{% endif %}>-- Pilih --</option>
+                        <option value="1" {% if request.form.get('fasting_bs')=='1' %}selected{% endif %}>Ya — Lebih dari 120 mg/dl</option>
+                        <option value="0" {% if request.form.get('fasting_bs')=='0' %}selected{% endif %}>Tidak — 120 mg/dl atau kurang</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="resting_ecg">
+                        Hasil EKG Istirahat
+                        <span class="info-tip-wrap">
+                            <span class="info-tip-icon">i</span>
+                            <div class="info-tip-box">
+                                <b>Normal</b> — Tidak ada kelainan pada rekam jantung<br>
+                                <b>ST</b> — Terdapat perubahan atau kelainan pada gelombang ST-T (bisa menandakan gangguan jantung)<br>
+                                <b>LVH</b> — Hipertrofi Ventrikel Kiri: bilik jantung kiri tampak lebih besar dari normal
+                            </div>
+                        </span>
+                    </label>
+                    <p class="form-hint">Hasil rekam listrik jantung saat istirahat</p>
+                    <select class="form-control" id="resting_ecg" name="resting_ecg" required>
+                        <option value="" disabled {% if not request.form.get('resting_ecg') %}selected{% endif %}>-- Pilih Hasil EKG --</option>
+                        <option value="Normal" {% if request.form.get('resting_ecg')=='Normal' %}selected{% endif %}>Normal — Tidak ada kelainan</option>
+                        <option value="ST"     {% if request.form.get('resting_ecg')=='ST'     %}selected{% endif %}>ST — Ada kelainan gelombang ST-T</option>
+                        <option value="LVH"    {% if request.form.get('resting_ecg')=='LVH'    %}selected{% endif %}>LVH — Bilik jantung kiri membesar</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="exercise_angina">Nyeri Dada saat Olahraga</label>
+                    <p class="form-hint">Apakah muncul nyeri atau sesak di dada saat beraktivitas fisik?</p>
+                    <select class="form-control" id="exercise_angina" name="exercise_angina" required>
+                        <option value="" disabled {% if not request.form.get('exercise_angina') %}selected{% endif %}>-- Pilih --</option>
+                        <option value="Y" {% if request.form.get('exercise_angina')=='Y' %}selected{% endif %}>Ya — Ada nyeri dada saat olahraga</option>
+                        <option value="N" {% if request.form.get('exercise_angina')=='N' %}selected{% endif %}>Tidak — Tidak ada nyeri dada saat olahraga</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="st_slope">
+                        Kemiringan Segmen ST
+                        <span class="info-tip-wrap">
+                            <span class="info-tip-icon">i</span>
+                            <div class="info-tip-box">
+                                <b>Up (Naik)</b> — Segmen ST bergerak naik saat puncak olahraga. Kondisi lebih sehat<br>
+                                <b>Flat (Datar)</b> — Segmen ST tidak berubah. Perlu diperhatikan<br>
+                                <b>Down (Turun)</b> — Segmen ST bergerak turun. Indikasi risiko lebih tinggi
+                            </div>
+                        </span>
+                    </label>
+                    <p class="form-hint">Arah perubahan segmen ST pada puncak aktivitas olahraga</p>
+                    <select class="form-control" id="st_slope" name="st_slope" required>
+                        <option value="" disabled {% if not request.form.get('st_slope') %}selected{% endif %}>-- Pilih Kemiringan --</option>
+                        <option value="Up"   {% if request.form.get('st_slope')=='Up'   %}selected{% endif %}>Up — Naik (kondisi lebih sehat)</option>
+                        <option value="Flat" {% if request.form.get('st_slope')=='Flat' %}selected{% endif %}>Flat — Datar (perlu perhatian)</option>
+                        <option value="Down" {% if request.form.get('st_slope')=='Down' %}selected{% endif %}>Down — Turun (risiko lebih tinggi)</option>
+                    </select>
+                </div>
+
+            </div>
+
+            <hr class="divider">
+
+            <button class="btn-primary full" type="submit">🔍 Analisis Risiko Sekarang</button>
+
+            {% if not user %}
+            <p style="font-size:12px; color:var(--text-dim); text-align:center; margin-top:10px; margin-bottom:0;">
+                <a href="{{ url_for('login') }}" style="color:var(--primary);">Masuk</a> atau
+                <a href="{{ url_for('register') }}" style="color:var(--primary);">daftar</a>
+                agar hasil prediksi tersimpan otomatis di riwayat Anda.
+            </p>
+            {% endif %}
+
+        </form>
+
+        {% if error %}
+        <div style="margin-top:14px; padding:12px 16px; background:var(--danger-lt); border:1px solid #fca5a5; border-radius:8px; font-size:13px; color:#b91c1c;">
+            ❌ {{ error }}
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- ── Hasil Prediksi (muncul setelah submit) ────────────────────────── -->
+{% if result %}
+<div class="result-card">
+
+    <!-- Header hasil utama -->
+    <div class="result-header {{ 'risiko-tinggi' if result.disease else 'risiko-rendah' }}">
+        <div>
+            <div class="result-icon">{{ '💔' if result.disease else '💚' }}</div>
+            <div class="result-verdict">{{ result.label }}</div>
+            <div class="result-sub">
+                {% if result.disease %}
+                    Indikator menunjukkan kemungkinan penyakit jantung
+                {% else %}
+                    Indikator tidak menunjukkan risiko signifikan
+                {% endif %}
+            </div>
+        </div>
+        <div class="confidence-badge">
+            <div class="cb-label">Confidence</div>
+            <div class="cb-val">{{ result.confidence }}%</div>
+        </div>
+    </div>
+
+    <!-- Progress bar confidence -->
+    <div class="conf-bar-section {{ 'risiko-tinggi' if result.disease else 'risiko-rendah' }}">
+        <div class="bar-track">
+            <div class="bar-fill" data-w="{{ result.confidence }}"></div>
+        </div>
+        <div class="bar-note">
+            Confidence menunjukkan seberapa yakin model terhadap prediksi ini.
+            {% if result.confidence >= 80 %}Model sangat yakin.
+            {% elif result.confidence >= 60 %}Model cukup yakin.
+            {% else %}Model kurang yakin — interpretasi dengan hati-hati.{% endif %}
+        </div>
+    </div>
+
+    <!-- Probabilitas dua kelas -->
+    <div class="prob-section">
+        <div class="prob-label">Probabilitas Kelas</div>
+        <div class="prob-bars">
+            <div class="prob-row">
+                <span class="prob-name prob-name-d">❤️‍🔥 Risiko Tinggi</span>
+                <div class="prob-track"><div class="prob-fill-d" data-w="{{ result.prob_disease }}"></div></div>
+                <span class="prob-pct-d">{{ result.prob_disease }}%</span>
+            </div>
+            <div class="prob-row">
+                <span class="prob-name prob-name-n">💚 Risiko Rendah</span>
+                <div class="prob-track"><div class="prob-fill-n" data-w="{{ result.prob_normal }}"></div></div>
+                <span class="prob-pct-n">{{ result.prob_normal }}%</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Ringkasan data input -->
+    <div class="chip-section">
+        <div class="chip-label">Ringkasan Data yang Dimasukkan</div>
+        <div class="chip-wrap">
+            <span class="chip">Usia: {{ result.age }} thn</span>
+            <span class="chip">{{ result.sex_label }}</span>
+            <span class="chip">Nyeri dada: {{ result.chest_pain }}</span>
+            <span class="chip">T. Darah: {{ result.resting_bp }} mmHg</span>
+            <span class="chip">Kolesterol: {{ result.cholesterol }}</span>
+            <span class="chip">MaxHR: {{ result.max_hr }} bpm</span>
+            <span class="chip">Oldpeak: {{ result.oldpeak }}</span>
+            <span class="chip">EKG: {{ result.resting_ecg }}</span>
+            <span class="chip">Angina: {{ result.exercise_angina }}</span>
+            <span class="chip">ST Slope: {{ result.st_slope }}</span>
+            <span class="chip">GDS Puasa: {{ result.fasting_bs_lbl }}</span>
+        </div>
+    </div>
+
+    <!-- Feature importance top-10 -->
+    <div class="fi-section">
+        <div class="fi-label">Faktor Paling Berpengaruh (Top 10)</div>
+        {% for nama, pct in result.fi %}
+        <div class="fi-row">
+            <span class="fi-name" title="{{ nama }}">{{ nama }}</span>
+            <div class="fi-track"><div class="fi-bar" data-w="{{ [pct * 5, 100] | min }}"></div></div>
+            <span class="fi-pct">{{ pct }}%</span>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Notifikasi penyimpanan riwayat -->
+    {% if user %}
+    <div class="save-notice">
+        ✅ Hasil prediksi ini telah <strong>disimpan</strong> ke riwayat akun Anda.
+        <a href="{{ url_for('riwayat') }}" style="color:var(--primary-dk); font-weight:600;">Lihat Riwayat →</a>
+    </div>
+    {% else %}
+    <div class="warn-notice">
+        ⚠️ Hasil ini <strong>tidak disimpan</strong>.
+        <a href="{{ url_for('login') }}" style="color:#92400e; font-weight:600;">Masuk</a> atau
+        <a href="{{ url_for('register') }}" style="color:#92400e; font-weight:600;">daftar</a> untuk menyimpan riwayat prediksi.
+    </div>
+    {% endif %}
+
+    <!-- Disclaimer -->
+    <div class="result-disclaimer">
+        ⚠️ <strong>Peringatan:</strong> Hasil ini bersifat indikatif dan tidak menggantikan diagnosis medis.
+        Selalu konsultasikan kondisi Anda dengan dokter atau tenaga kesehatan profesional.
+    </div>
+
+</div>
+{% endif %}
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// ── Set lebar bar dari data-w (menghindari Jinja2 di inline style) ────
+document.querySelectorAll('[data-w]').forEach(function(el) {
+    el.style.width = el.getAttribute('data-w') + '%';
+});
+
+// ── Profil data contoh — 6 pasien realistis dari distribusi dataset ──
+const profiles = [
+    // Profil 1 — Pria 52 thn, risiko menengah
+    { age: 52, resting_bp: 125, cholesterol: 212, max_hr: 168, oldpeak: 1.0,
+      sex: 'M', chest_pain: 'ATA', fasting_bs: '0', resting_ecg: 'Normal', exercise_angina: 'N', st_slope: 'Up' },
+    // Profil 2 — Pria 67 thn, risiko tinggi
+    { age: 67, resting_bp: 160, cholesterol: 286, max_hr: 108, oldpeak: 1.5,
+      sex: 'M', chest_pain: 'ASY', fasting_bs: '0', resting_ecg: 'LVH', exercise_angina: 'Y', st_slope: 'Flat' },
+    // Profil 3 — Wanita 44 thn, risiko rendah
+    { age: 44, resting_bp: 110, cholesterol: 197, max_hr: 177, oldpeak: 0.0,
+      sex: 'F', chest_pain: 'ATA', fasting_bs: '0', resting_ecg: 'Normal', exercise_angina: 'N', st_slope: 'Up' },
+    // Profil 4 — Pria 57 thn, risiko menengah-tinggi
+    { age: 57, resting_bp: 140, cholesterol: 241, max_hr: 123, oldpeak: 0.2,
+      sex: 'M', chest_pain: 'NAP', fasting_bs: '0', resting_ecg: 'ST', exercise_angina: 'Y', st_slope: 'Flat' },
+    // Profil 5 — Pria 63 thn, risiko tinggi
+    { age: 63, resting_bp: 145, cholesterol: 233, max_hr: 150, oldpeak: 2.3,
+      sex: 'M', chest_pain: 'ASY', fasting_bs: '0', resting_ecg: 'LVH', exercise_angina: 'N', st_slope: 'Up' },
+    // Profil 6 — Wanita 50 thn, risiko menengah
+    { age: 50, resting_bp: 130, cholesterol: 254, max_hr: 147, oldpeak: 1.4,
+      sex: 'F', chest_pain: 'NAP', fasting_bs: '1', resting_ecg: 'Normal', exercise_angina: 'N', st_slope: 'Up' },
+];
+
+// ── Auto-fill dengan profil acak ──────────────────────────────────────
+function isiContoh() {
+    const p = profiles[Math.floor(Math.random() * profiles.length)];
+
+    document.getElementById('age').value         = p.age;
+    document.getElementById('resting_bp').value  = p.resting_bp;
+    document.getElementById('cholesterol').value = p.cholesterol;
+    document.getElementById('max_hr').value      = p.max_hr;
+    document.getElementById('oldpeak').value     = p.oldpeak;
+
+    setSelect('sex',             p.sex);
+    setSelect('chest_pain',      p.chest_pain);
+    setSelect('fasting_bs',      p.fasting_bs);
+    setSelect('resting_ecg',     p.resting_ecg);
+    setSelect('exercise_angina', p.exercise_angina);
+    setSelect('st_slope',        p.st_slope);
+
+    const btn = document.querySelector('.btn-contoh');
+    btn.textContent = '✅ Data contoh sudah diisi!';
+    setTimeout(() => { btn.innerHTML = '✨ Isi dengan Data Contoh'; }, 2500);
+}
+
+// Helper: set nilai dropdown berdasarkan value
+function setSelect(id, val) {
+    const sel = document.getElementById(id);
+    if (!sel) return;
+    for (let opt of sel.options) {
+        if (opt.value === val) { opt.selected = true; break; }
+    }
+}
+</script>
+{% endblock %}

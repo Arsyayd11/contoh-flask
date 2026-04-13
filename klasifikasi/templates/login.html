@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+{% block title %}Masuk — HeartCheck{% endblock %}
+
+{% block extra_css %}
+<style>
+    .auth-wrap {
+        max-width: 420px;
+        margin: 40px auto 0;
+    }
+    .auth-brand {
+        text-align: center;
+        margin-bottom: 28px;
+    }
+    .auth-brand .ab-icon {
+        font-size: 42px;
+        margin-bottom: 10px;
+    }
+    .auth-brand h1 { font-size: 24px; font-weight: 700; color: var(--text); }
+    .auth-brand p  { font-size: 14px; color: var(--text-dim); margin-top: 4px; }
+
+    .auth-card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        padding: 32px;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+    }
+
+    .auth-footer {
+        text-align: center;
+        margin-top: 20px;
+        font-size: 14px;
+        color: var(--text-dim);
+    }
+    .auth-footer a { color: var(--primary); font-weight: 600; text-decoration: none; }
+    .auth-footer a:hover { text-decoration: underline; }
+
+    .divider-text {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin: 20px 0;
+        font-size: 12px;
+        color: var(--muted);
+    }
+    .divider-text::before,
+    .divider-text::after {
+        content: '';
+        flex: 1;
+        height: 1px;
+        background: var(--border);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="auth-wrap">
+
+    <div class="auth-brand">
+        <div class="ab-icon">❤️</div>
+        <h1>Selamat Datang Kembali</h1>
+        <p>Masuk untuk mengakses riwayat prediksi Anda</p>
+    </div>
+
+    <div class="auth-card">
+        <form method="POST" action="{{ url_for('login') }}">
+
+            <div class="form-group">
+                <label class="form-label" for="email">Alamat Email</label>
+                <input class="form-control" type="email" id="email" name="email"
+                       placeholder="nama@email.com" required
+                       value="{{ request.form.get('email', '') }}" autocomplete="email">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="password">Kata Sandi</label>
+                <input class="form-control" type="password" id="password" name="password"
+                       placeholder="Masukkan kata sandi" required autocomplete="current-password">
+            </div>
+
+            <button class="btn-primary full" type="submit" style="margin-top:8px;">
+                🔑 Masuk ke Akun
+            </button>
+        </form>
+
+        <div class="divider-text">atau</div>
+
+        <a href="{{ url_for('prediksi') }}" class="btn-outline" style="width:100%; justify-content:center; display:flex;">
+            🔍 Coba Prediksi Tanpa Login
+        </a>
+    </div>
+
+    <div class="auth-footer">
+        Belum punya akun?
+        <a href="{{ url_for('register') }}">Daftar sekarang</a>
+    </div>
+</div>
+{% endblock %}
