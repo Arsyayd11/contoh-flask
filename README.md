@@ -115,7 +115,6 @@ python -m venv venv
 ```bash
 # Windows
 venv\Scripts\activate
-
 # macOS / Linux
 source venv/bin/activate
 ```
@@ -156,7 +155,8 @@ Buka: http://127.0.0.1:5001
 | Route | Halaman |
 |-------|---------|
 | `/` | Beranda (Hero Landing Page) |
-| `/prediksi` | Form prediksi 11 fitur klinis |
+| `/prediksi
+` | Form prediksi 11 fitur klinis |
 | `/daftar` | Pendaftaran akun baru |
 | `/masuk` | Masuk akun |
 | `/keluar` | Keluar dari sesi |

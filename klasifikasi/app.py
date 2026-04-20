@@ -23,6 +23,8 @@
 #   3. Buka http://127.0.0.1:5001
 # ============================================================
 
+import os
+
 from flask import (
     Flask, render_template, request,
     redirect, url_for, session, flash
@@ -340,5 +342,11 @@ def tentang():
 if __name__ == "__main__":
     # debug=True: reload otomatis saat kode berubah + tampilkan error detail.
     # Port 5001 agar tidak bentrok dengan aplikasi lain (root=5000, dll).
-    # JANGAN gunakan debug=True di production server!
-    app.run(debug=True, port=5001)
+    # JANGAN gunakan debug=True di production server
+    port = int(os.environ.get("PORT", 5001))
+
+    app.run(
+        host="0.0.0.0",   # WAJIB agar bisa diakses dari luar
+        port=port,
+        debug=False       # WAJIB dimatikan di server
+    )
